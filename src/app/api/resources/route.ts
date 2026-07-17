@@ -1,0 +1,59 @@
+import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/db/client";
+import { resources, workingHours, serviceResources } from "@/db/schema";
+import { eq } from "drizzle-orm";
+import { requireTenantSession } from "@/lib/requireAuth";
+import { getCurrentTenants } from "@/lib/tenant";
+import { z } from "zod";
+
+export async function GET() {
+  const tenant = await getCurrentTenants();
+  if (!tenant) return NextResponse.json({ error: "Unknown business" }, { status: 404 });
+
+  const rows = await db.select().from(resources).where(eq(resources.tenantId, tenant.id));
+  return NextResponse.json({ resources: rows.filter((r) => r.isActive) });
+}
+
+const schema = z.object({
+  name: z.string().min(1),
+  serviceIds: z.array(z.string()).default([]),
+  // Simple default: same hours every weekday. Per-day customization is a v2 dashboard feature.
+  workingHours: z
+    .object({ startTime: z.string(), endTime: z.string(), days: z.array(z.number().min(0).max(6)) })
+    .default({ startTime: "09:00", endTime: "17:00", days: [1, 2, 3, 4, 5] }),
+});
+
+export async function POST(req: NextRequest) {
+  const auth = await requireTenantSession();
+  if (!auth) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
+
+  const parsed = schema.safeParse(await req.json());
+  if (!parsed.success) {
+    return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
+  }
+  const { name, serviceIds, workingHours: hours } = parsed.data;
+
+  const [resource] = await db
+    .insert(resources)
+    .values({ tenantId: auth.tenant.id, name })
+    .returning();
+
+  if (hours.days.length > 0) {
+    await db.insert(workingHours).values(
+      hours.days.map((d) => ({
+        resourceId: resource.id,
+        dayOfWeek: d,
+        startTime: hours.startTime,
+        endTime: hours.endTime,
+      }))
+    );
+  }
+
+  if (serviceIds.length > 0) {
+    await db
+      .insert(serviceResources)
+      .values(serviceIds.map((serviceId) => ({ serviceId, resourceId: resource.id })));
+  }
+
+  return NextResponse.json({ resource });
+}

@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+:root {
+  --ink: #22261f;
+  --ink-soft: #55594e;
+  --paper: #f7f5ef;
+  --paper-raised: #ffffff;
+  --moss: #3e5c46;
+  --moss-dark: #2e4636;
+  --gold: #b08a3e;
+  --rust: #a4462f;
+  --stone: #ddd6c5;
+  --stone-soft: #ece8dc;
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-paper: var(--paper);
+  --color-paper-raised: var(--paper-raised);
+  --color-moss: var(--moss);
+  --color-moss-dark: var(--moss-dark);
+  --color-gold: var(--gold);
+  --color-rust: var(--rust);
+  --color-stone: var(--stone);
+  --color-stone-soft: var(--stone-soft);
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-mono: var(--font-mono);
+}
+
+.input {
+  margin-top: 0.25rem;
+  display: block;
+  width: 100%;
+  border-radius: 0.375rem;
+  border: 1px solid var(--stone);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--moss);
+  box-shadow: 0 0 0 3px rgba(62, 92, 70, 0.12);
+}
+
+body {
+  background-color: var(--paper);
+  color: var(--ink);
+}
