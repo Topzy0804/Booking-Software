@@ -40,8 +40,8 @@ export async function getAvailableSlots(params: {
     .where(
       and(
         eq(availabilityExceptions.resourceId, resourceId),
-        lte(availabilityExceptions.startsAt, dayEnd.toISOString()),
-        gte(availabilityExceptions.endsAt, dayStart.toISOString())
+        lte(availabilityExceptions.startsAt, dayEnd),
+        gte(availabilityExceptions.endsAt, dayStart)
       )
     );
 
@@ -60,8 +60,8 @@ export async function getAvailableSlots(params: {
       and(
         eq(bookings.resourceId, resourceId),
         ne(bookings.status, "cancelled"),
-        lte(bookings.startsAt, dayEnd.toISOString()),
-        gte(bookings.endsAt, dayStart.toISOString())
+        lte(bookings.startsAt, dayEnd),
+        gte(bookings.endsAt, dayStart)
       )
     );
 

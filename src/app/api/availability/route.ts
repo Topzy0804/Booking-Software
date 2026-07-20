@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
     linkedResources.map(async (r) => ({
       resourceId: r.resourceId,
       resourceName: r.name,
-      slots: await getAvailableSlots({
+      stats: await getAvailableSlots({
         resourceId: r.resourceId,
         day,
         durationMinutes: service.durationMinutes,

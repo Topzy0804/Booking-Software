@@ -11,7 +11,33 @@ export async function GET() {
   if (!tenant) return NextResponse.json({ error: "Unknown business" }, { status: 404 });
 
   const rows = await db.select().from(resources).where(eq(resources.tenantId, tenant.id));
-  return NextResponse.json({ resources: rows.filter((r) => r.isActive) });
+  const active = rows.filter((r) => r.isActive);
+
+
+  const withDetails = await Promise.all(
+    active.map(async (r) => {
+      const hours = await db
+        .select()
+        .from(workingHours)
+        .where(eq(workingHours.resourceId, r.id));
+      const links = await db
+        .select({ serviceId: serviceResources.serviceId })
+        .from(serviceResources)
+        .where(eq(serviceResources.resourceId, r.id));
+
+      return {
+        ...r,
+        workingHours: hours.map((h) => ({
+          dayOfWeek: h.dayOfWeek,
+          startTime: h.startTime,
+          endTime: h.endTime,
+        })),
+        serviceIds: links.map((l) => l.serviceId),
+      };
+    })
+  );
+
+  return NextResponse.json({ resources: withDetails });
 }
 
 const schema = z.object({

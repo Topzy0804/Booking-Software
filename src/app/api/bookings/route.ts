@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const booking = createBooking({
+    const booking = await createBooking({
       tenantId: tenant.id,
       clientId: existingClient.id,
       serviceId,
