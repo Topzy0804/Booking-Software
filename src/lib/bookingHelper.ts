@@ -28,9 +28,24 @@ export function mergeSlots(
   for (const r of availability) {
     for (const slot of r.stats) {
       if (!seen.has(slot.start)) {
-        seen.set(slot.start, { startISO: slot.start, resourceId: r.resourceId, resourceName: r.resourceName });
+        seen.set(slot.start, {
+          startISO: slot.start,
+          resourceId: r.resourceId,
+          resourceName: r.resourceName,
+          resources: [{ resourceId: r.resourceId, resourceName: r.resourceName }],
+        });
+        continue;
+      }
+
+      const existing = seen.get(slot.start);
+      if (!existing) {
+        continue;
+      }
+
+      if (!existing.resources.some((resource) => resource.resourceId === r.resourceId)) {
+        existing.resources.push({ resourceId: r.resourceId, resourceName: r.resourceName });
       }
     }
   }
-  return[...seen.values()].sort((a, b) => a.startISO.localeCompare(b.startISO));
+  return [...seen.values()].sort((a, b) => a.startISO.localeCompare(b.startISO));
 }

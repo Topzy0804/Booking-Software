@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db/client";
-import { services, clients, bookings, resources } from "@/db/schema";
+import { services, clients, bookings, resources, serviceResources } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { getCurrentTenants } from "@/lib/tenant";
 import { requireTenantSession } from "@/lib/requireAuth";
 import { createBooking, BookingConflictError } from "@/lib/booking";
+import { sendBookingConfirmationEmail } from "@/lib/email";
 import { z } from "zod";
 
 // Staff-facing: list this tenant's bookings, newest first.
@@ -37,6 +38,7 @@ export async function GET() {
 const schema = z.object({
   serviceId: z.string(),
   resourceId: z.string(),
+  resourceIds: z.array(z.string()).optional(),
   startsAt: z.string(), // ISO
   client: z.object({
     fullName: z.string().min(1),
@@ -62,6 +64,20 @@ export async function POST(req: NextRequest) {
     .where(and(eq(services.id, serviceId), eq(services.tenantId, tenant.id)));
   if (!service) return NextResponse.json({ error: "Service not found" }, { status: 404 });
 
+  const linkedResources = await db
+    .select({ id: resources.id, name: resources.name })
+    .from(serviceResources)
+    .innerJoin(resources, eq(resources.id, serviceResources.resourceId))
+    .where(eq(serviceResources.serviceId, serviceId));
+
+  const resourceNameById = new Map(linkedResources.map((resource) => [resource.id, resource.name]));
+  const candidateResourceIds = Array.from(new Set([resourceId, ...(parsed.data.resourceIds ?? [])]))
+    .filter((candidateResourceId) => resourceNameById.has(candidateResourceId));
+
+  if (candidateResourceIds.length === 0) {
+    return NextResponse.json({ error: "Resource not available for this service" }, { status: 404 });
+  }
+
   const startDate = new Date(startsAt);
   const endDate = new Date(startDate.getTime() + service.durationMinutes * 60000);
 
@@ -78,22 +94,39 @@ export async function POST(req: NextRequest) {
       .returning();
   }
 
-  try {
-    const booking = await createBooking({
-      tenantId: tenant.id,
-      clientId: existingClient.id,
-      serviceId,
-      resourceId,
-      startsAt: startDate,
-      endsAt: endDate,
-      priceCentsSnapshot: service.priceCents,
-    });
+  for (const candidateResourceId of candidateResourceIds) {
+    try {
+      const booking = await createBooking({
+        tenantId: tenant.id,
+        clientId: existingClient.id,
+        serviceId,
+        resourceId: candidateResourceId,
+        startsAt: startDate,
+        endsAt: endDate,
+        priceCentsSnapshot: service.priceCents,
+      });
 
-    return NextResponse.json({ booking });
-  } catch (err) {
-    if (err instanceof BookingConflictError) {
-      return NextResponse.json({ error: err.message }, { status: 409 });
+      const resourceName = resourceNameById.get(candidateResourceId)!;
+
+      await sendBookingConfirmationEmail({
+        to: client.email,
+        clientName: client.fullName,
+        tenantName: tenant.name,
+        resourceName,
+        startsAt: startDate,
+        serviceName: service.name,
+        durationMinutes: service.durationMinutes,
+        priceCents: service.priceCents,
+      });
+
+      return NextResponse.json({ booking, resourceName });
+    } catch (err) {
+      if (err instanceof BookingConflictError) {
+        continue;
+      }
+      throw err;
     }
-    throw err;
   }
+
+  return NextResponse.json({ error: "This slot was just taken. Please pick another time." }, { status: 409 });
 }

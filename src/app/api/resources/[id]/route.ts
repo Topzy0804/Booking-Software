@@ -5,6 +5,7 @@ import { eq, and } from "drizzle-orm";
 import { requireTenantSession } from "@/lib/requireAuth";
 import { z } from "zod";
 
+
 function buildResourceDetails(
   resource: typeof resources.$inferSelect,
   hours: Array<typeof workingHours.$inferSelect>,

@@ -25,6 +25,8 @@ export type Booking = {
   clientEmail: string;
   serviceName: string;
   resourceName: string;
+  serviceId: string;
+  resourceId: string;
 };
 
 export type Client = {

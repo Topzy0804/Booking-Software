@@ -1,5 +1,6 @@
 import { db } from '@/db/client';
 import { bookings } from '@/db/schema';
+import { eq, and } from 'drizzle-orm';
 
 export class BookingConflictError extends Error {
   constructor() {
@@ -48,4 +49,30 @@ function isExclusionViolation(err: unknown): boolean {
     'code' in err &&
     (err as { code?: string }).code === EXCLUSION_VIOLATION
   );
+}
+
+export async function rescheduleBooking(input: {
+  id: string;
+  tenantId: string;
+  resourceId: string;
+  startsAt: Date;
+  endsAt: Date;
+}) {
+  try {
+    const [updated] = await db.update(bookings).set({
+      resourceId: input.resourceId,
+      startsAt: input.startsAt,
+      endsAt: input.endsAt,
+      updatedAt: new Date(),
+    })
+    .where(and(eq(bookings.id, input.id), eq(bookings.tenantId, input.tenantId)))
+    .returning();
+
+    return updated;
+  } catch (err: unknown) {
+    if (isExclusionViolation(err)) {
+      throw new BookingConflictError();
+    }
+    throw err;
+  }
 }

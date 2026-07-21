@@ -9,6 +9,10 @@ export type MergedSlot = {
   startISO: string;
   resourceId: string;
   resourceName: string;
+  resources: {
+    resourceId: string;
+    resourceName: string;
+  }[];
 };
 
 export type Step = 1 | 2 | 3 | 4;

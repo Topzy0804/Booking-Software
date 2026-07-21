@@ -38,25 +38,29 @@ export default function BookingFlow({
 
   useEffect(() => {
     if (step !== 2 || !selectedService) return;
+    const service = selectedService;
     let cancelled = false;
-    setLoadingSlots(true);
-    setSelectedSlot(null);
+    async function loadSlots() {
+      setLoadingSlots(true);
+      setSelectedSlot(null);
 
-    const dateParam = toDateParam(selectedDay);
-    fetch(`/api/availability?serviceId=${selectedService.id}&date=${dateParam}`)
-      .then((res) => res.json())
-      .then((data) => {
+      try {
+        const dateParam = toDateParam(selectedDay);
+        const response = await fetch(`/api/availability?serviceId=${service.id}&date=${dateParam}`);
+        const data = await response.json();
+
         if (cancelled) return;
         setSlots(mergeSlots(data.availability ?? []));
-      })
-      .catch(() => {
+      } catch {
         if (!cancelled) {
           toast.error('Failed to fetch availability');
         }
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) setLoadingSlots(false);
-      });
+      }
+    }
+
+    void loadSlots();
 
     return () => {
       cancelled = true;
@@ -81,6 +85,7 @@ export default function BookingFlow({
         body: JSON.stringify({
           serviceId: selectedService.id,
           resourceId: selectedSlot.resourceId,
+          resourceIds: selectedSlot.resources.map((resource) => resource.resourceId),
           startsAt: selectedSlot.startISO,
           client,
         }),
@@ -92,12 +97,10 @@ export default function BookingFlow({
         return;
       }
 
-      if (res.status ===409) {
-        toast.error(data.error ?? 'something went wrong, please try again.');
-        return;
-      }
-
-      setConfirmed({ startISO: selectedSlot.startISO, resourceName: selectedSlot.resourceName });
+      setConfirmed({
+        startISO: selectedSlot.startISO,
+        resourceName: data.resourceName ?? selectedSlot.resourceName,
+      });
       setStep(4);
     } finally {
       setSubmitting(false);
@@ -122,7 +125,7 @@ export default function BookingFlow({
 
   return ( 
     <main className="flex flex-1 justify-center px-4 py-11">
-          <div className="w-full max-w-[420px]">
+          <div className="w-full max-w-105">
             <div className="mb-7 text-center">
               <p className="font-mono text-[11px] uppercase tracking-wide text-moss">
                 Book an appointment
@@ -134,7 +137,7 @@ export default function BookingFlow({
               {[1, 2, 3, 4].map((s) => (
                 <div
                   key={s}
-                  className={`h-[3px] w-6 rounded-full ${s <= step ? "bg-moss" : "bg-stone"}`}
+                  className={`h-0.75 w-6 rounded-full ${s <= step ? "bg-moss" : "bg-stone"}`}
                 />
               ))}
             </div>
