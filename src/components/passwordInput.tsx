@@ -8,13 +8,13 @@ export default function PasswordInput({
   value,
   onChange,
   required,
-  minLenght,
+  minLength,
   id,
 }: {
   value: string;
   onChange: (value: string) => void;
   required?: boolean;
-  minLenght?: number;
+  minLength?: number;
   id?: string;
 }) {
   const [visible, setVisible] = useState(false);
@@ -24,7 +24,7 @@ export default function PasswordInput({
       <input
         id={id}
         required={required}
-        minLength={minLenght}
+        minLength={minLength}
         type={visible ? "text" : "password"}
         className="input pr-10"
         value={value}
