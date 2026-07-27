@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Fraunces, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from 'sonner';
+import { Analytics } from "@vercel/analytics/next"
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -33,6 +34,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-full flex flex-col bg-paper text-ink font-body antialiased">
         {children}
         <Toaster position='bottom-right' richColors />
+        <Analytics />
       </body>
     </html>
   );
