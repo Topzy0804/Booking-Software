@@ -81,5 +81,24 @@ export async function POST(req: NextRequest) {
       .values(serviceIds.map((serviceId) => ({ serviceId, resourceId: resource.id })));
   }
 
-  return NextResponse.json({ resource });
+  const createdHours = await db
+    .select()
+    .from(workingHours)
+    .where(eq(workingHours.resourceId, resource.id));
+  const createdLinks = await db
+    .select({ serviceId: serviceResources.serviceId })
+    .from(serviceResources)
+    .where(eq(serviceResources.resourceId, resource.id));
+
+  return NextResponse.json({
+    resource: {
+      ...resource,
+      workingHours: createdHours.map((hour) => ({
+        dayOfWeek: hour.dayOfWeek,
+        startTime: hour.startTime,
+        endTime: hour.endTime,
+      })),
+      serviceIds: createdLinks.map((link) => link.serviceId),
+    },
+  });
 }

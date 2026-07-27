@@ -9,8 +9,9 @@ export async function getAvailableSlots(params: {
   day: Date; 
   durationMinutes: number;
   bufferAfterMinutes: number;
+  excludeBookingId?: string;
 }): Promise<Slot[]> {
-  const { resourceId, day, durationMinutes, bufferAfterMinutes } = params;
+  const { resourceId, day, durationMinutes, bufferAfterMinutes, excludeBookingId } = params;
 
   const dayStart = new Date(
     Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate())
@@ -61,7 +62,8 @@ export async function getAvailableSlots(params: {
         eq(bookings.resourceId, resourceId),
         ne(bookings.status, "cancelled"),
         lte(bookings.startsAt, dayEnd),
-        gte(bookings.endsAt, dayStart)
+        gte(bookings.endsAt, dayStart),
+        ...(excludeBookingId ? [ne(bookings.id, excludeBookingId)] : [])
       )
     );
 

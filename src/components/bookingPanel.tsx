@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import EmptyState from "./emptyState";
-import type { Booking, BookingStatus } from "@/types/dashboard";
-import { Button } from '@/components/ui/button';
+import EmptyState from "@/components/emptyState";
+import NewBookingModal from "@/components/newBookingMobal";
+import CalendarView from "@/components/calenderView";
+import AnalyticsStrip from "@/components/analyticStrip";
+import type { Booking, BookingStatus, Service, Resource } from "@/types/dashboard";
 
 const STATUS_LABEL: Record<BookingStatus, string> = {
   confirmed: "Confirmed",
@@ -19,9 +21,21 @@ const STATUS_CLASS: Record<BookingStatus, string> = {
   no_show: "bg-[#EFEBE0] text-ink-soft",
 };
 
-export default function BookingsPanel({ initialBookings }: { initialBookings: Booking[] }) {
+export default function BookingsPanel({
+  initialBookings,
+  services,
+}: {
+  initialBookings: Booking[];
+  services: Service[];
+  // Accepted for prop-shape consistency with what the page fetches,
+  // though NewBookingModal fetches its own richer copy (with
+  // serviceIds attached) via GET /api/resources rather than using this.
+  resources?: Resource[];
+}) {
   const [bookings, setBookings] = useState(initialBookings);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [showNewBooking, setShowNewBooking] = useState(false);
+  const [view, setView] = useState<"list" | "calendar">("list");
 
   async function updateStatus(id: string, status: BookingStatus) {
     setUpdatingId(id);
@@ -49,15 +63,50 @@ export default function BookingsPanel({ initialBookings }: { initialBookings: Bo
 
   return (
     <div>
-      <div className="mb-6">
-        <h2 className="font-display text-2xl font-semibold text-ink">Bookings</h2>
-        <p className="mt-1 text-[13px] text-ink-soft">
-          {bookings.length} total · {bookings.filter((b) => b.status === "confirmed").length}{" "}
-          upcoming
-        </p>
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <h2 className="font-display text-2xl font-semibold text-ink">Bookings</h2>
+          <p className="mt-1 text-[13px] text-ink-soft">
+            {bookings.length} total · {bookings.filter((b) => b.status === "confirmed").length}{" "}
+            upcoming
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="flex rounded-md border border-stone p-0.5">
+            {(["list", "calendar"] as const).map((v) => (
+              <button
+                key={v}
+                onClick={() => setView(v)}
+                className={`rounded px-3 py-1.5 text-[12px] font-medium capitalize ${
+                  view === v ? "bg-moss text-white" : "text-ink-soft hover:bg-stone-soft"
+                }`}
+              >
+                {v}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={() => setShowNewBooking(true)}
+            className="rounded-md bg-moss px-3.5 py-2 text-[13px] font-semibold text-white hover:bg-moss-dark"
+          >
+            + New booking
+          </button>
+        </div>
       </div>
 
-      {sorted.length === 0 ? (
+      <AnalyticsStrip bookings={bookings} />
+
+      {showNewBooking && (
+        <NewBookingModal
+          services={services}
+          onClose={() => setShowNewBooking(false)}
+          onCreated={(booking) => setBookings((cur) => [...cur, booking])}
+        />
+      )}
+
+      {view === "calendar" ? (
+        <CalendarView bookings={bookings} updatingId={updatingId} onUpdateStatus={updateStatus} />
+      ) : sorted.length === 0 ? (
         <EmptyState
           title="No bookings yet"
           body="Once your booking page is set up with a service, appointments booked by clients will show up here."
@@ -101,27 +150,27 @@ export default function BookingsPanel({ initialBookings }: { initialBookings: Bo
               <div className="flex justify-end gap-2">
                 {b.status === "confirmed" && (
                   <>
-                    <Button
+                    <button
                       disabled={updatingId === b.id}
                       onClick={() => updateStatus(b.id, "attended")}
                       className="text-[11px] font-medium text-moss hover:underline disabled:opacity-50"
                     >
                       Attended
-                    </Button>
-                    <Button
+                    </button>
+                    <button
                       disabled={updatingId === b.id}
                       onClick={() => updateStatus(b.id, "no_show")}
                       className="text-[11px] font-medium text-ink-soft hover:underline disabled:opacity-50"
                     >
                       No-show
-                    </Button>
-                    <Button
+                    </button>
+                    <button
                       disabled={updatingId === b.id}
                       onClick={() => updateStatus(b.id, "cancelled")}
                       className="text-[11px] font-medium text-rust hover:underline disabled:opacity-50"
                     >
                       Cancel
-                    </Button>
+                    </button>
                   </>
                 )}
               </div>

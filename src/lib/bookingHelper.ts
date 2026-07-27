@@ -22,11 +22,11 @@ export function toDateParam(d: Date): string {
 }
 
 export function mergeSlots(
-  availability: { resourceId: string; resourceName: string; stats: { start: string; end: string }[] }[]
+  availability: { resourceId: string; resourceName: string; slots: { start: string; end: string }[] }[]
 ): MergedSlot[] {
   const seen = new Map<string, MergedSlot>();
   for (const r of availability) {
-    for (const slot of r.stats) {
+    for (const slot of r.slots) {
       if (!seen.has(slot.start)) {
         seen.set(slot.start, {
           startISO: slot.start,

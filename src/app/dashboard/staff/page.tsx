@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { requireTenantSession } from "@/lib/requireAuth";
 import { db } from "@/db/client";
-import { resources, services } from "@/db/schema";
+import { resources, services, workingHours, serviceResources } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import StaffPanel from "@/components/staffPanel";
 
@@ -14,5 +14,30 @@ export default async function StaffPage() {
     db.select().from(services).where(eq(services.tenantId, auth.tenant.id)),
   ]);
 
-  return <StaffPanel initialResources={resourceRows} services={serviceRows} />;
+  const detailedResources = await Promise.all(
+    resourceRows
+      .filter((resource) => resource.isActive)
+      .map(async (resource) => {
+        const hours = await db
+          .select()
+          .from(workingHours)
+          .where(eq(workingHours.resourceId, resource.id));
+        const links = await db
+          .select({ serviceId: serviceResources.serviceId })
+          .from(serviceResources)
+          .where(eq(serviceResources.resourceId, resource.id));
+
+        return {
+          ...resource,
+          workingHours: hours.map((hour) => ({
+            dayOfWeek: hour.dayOfWeek,
+            startTime: hour.startTime,
+            endTime: hour.endTime,
+          })),
+          serviceIds: links.map((link) => link.serviceId),
+        };
+      })
+  );
+
+  return <StaffPanel initialResources={detailedResources} services={serviceRows} />;
 }

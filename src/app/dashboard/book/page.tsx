@@ -9,24 +9,30 @@ export default async function BookingsPage() {
   const auth = await requireTenantSession();
   if (!auth) redirect("/login");
 
-  const rows = await db
-    .select({
-      id: bookings.id,
-      startsAt: bookings.startsAt,
-      endsAt: bookings.endsAt,
-      status: bookings.status,
-      priceCentsSnapshot: bookings.priceCentsSnapshot,
-      clientName: clients.fullName,
-      clientEmail: clients.email,
-      serviceName: services.name,
-      resourceName: resources.name,
-    })
+  const [rows, activeServices] = await Promise.all([
+    db
+      .select({
+        id: bookings.id,
+        startsAt: bookings.startsAt,
+        endsAt: bookings.endsAt,
+        status: bookings.status,
+        priceCentsSnapshot: bookings.priceCentsSnapshot,
+        clientName: clients.fullName,
+        clientEmail: clients.email,
+        serviceName: services.name,
+        resourceName: resources.name,
+      })
     .from(bookings)
     .innerJoin(clients, eq(clients.id, bookings.clientId))
     .innerJoin(services, eq(services.id, bookings.serviceId))
     .innerJoin(resources, eq(resources.id, bookings.resourceId))
     .where(eq(bookings.tenantId, auth.tenant.id))
-    .orderBy(bookings.startsAt);
-
-  return <BookingsPanel initialBookings={rows} />;
+    .orderBy(bookings.startsAt),
+    db
+      .select()
+      .from(services)
+      .where(eq(services.tenantId, auth.tenant.id))
+      .then((rows) => rows.filter((s) => s.isActive)),
+  ]);
+  return <BookingsPanel initialBookings={rows} services={activeServices} />;
 }

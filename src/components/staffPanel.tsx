@@ -4,6 +4,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 import EmptyState from "./emptyState";
 import type { Resource, Service } from "@/types/dashboard";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
+import { Button } from "./ui/button";
 
 const WEEKDAYS = [
   { value: 1, label: "Mon" },
@@ -298,38 +300,54 @@ export default function StaffPanel({
                  .join(", ");
                const serviceNames = (r.serviceIds ?? [])
                  .map((id) => services.find((s) => s.id === id)?.name)
-                 .filter(Boolean)
-                 .join(", ");
+                 .filter((name): name is string => Boolean(name));
    
                return (
-                 <div key={r.id} className="rounded-lg border border-stone bg-paper-raised p-4">
-                   <div className="flex items-start justify-between gap-2">
-                     <div className="font-semibold text-ink">{r.name}</div>
+                 <Card key={r.id} className="border-stone bg-paper-raised">
+                   <CardHeader className="flex flex-row items-start justify-between gap-2 space-y-0">
+                     <CardTitle className="font-semibold text-ink">{r.name}</CardTitle>
                      <div className="flex shrink-0 gap-1">
-                       <button
+                       <Button
+                         variant="ghost"
+                         size="sm"
                          onClick={() => openEditForm(r)}
-                        disabled={loadingEditingId === r.id}
-                         className="rounded-md px-2 py-1 text-[12px] font-medium text-ink-soft hover:bg-stone-soft"
+                         disabled={loadingEditingId === r.id}
+                         className="h-auto px-2 py-1 text-[12px] font-medium text-ink-soft hover:bg-stone-soft"
                        >
-                        {loadingEditingId === r.id ? "Loading…" : "Edit"}
-                       </button>
-                       <button
+                         {loadingEditingId === r.id ? "Loading…" : "Edit"}
+                       </Button>
+                       <Button
+                         variant="ghost"
+                         size="sm"
                          onClick={() => handleDeactivate(r)}
-                         className="rounded-md px-2 py-1 text-[12px] font-medium text-ink-soft hover:bg-stone-soft"
+                         className="h-auto px-2 py-1 text-[12px] font-medium text-rust hover:bg-stone-soft"
                        >
                          Remove
-                       </button>
+                       </Button>
                      </div>
-                   </div>
-                   {hours.length > 0 && (
-                     <p className="mt-1 text-[12px] text-ink-soft">
-                       {dayLabels || "No days set"} · {hours[0].startTime}–{hours[0].endTime}
-                     </p>
-                   )}
-                   {serviceNames && (
-                     <p className="mt-0.5 text-[12px] text-ink-soft">{serviceNames}</p>
-                   )}
-                 </div>
+                   </CardHeader>
+                   <CardContent>
+                     {hours.length > 0 && (
+                       <p className="text-[12px] text-ink-soft">
+                         {dayLabels || "No days set"} · {hours[0].startTime}–{hours[0].endTime}
+                       </p>
+                     )}
+                     {serviceNames.length > 0 ? (
+                       <div className="mt-1.5 flex flex-wrap gap-1.5">
+                         {serviceNames.map((name) => (
+                           <span
+                             key={name}
+                             className="rounded-full border border-stone px-2.5 py-0.5 text-[11px] text-ink-soft"
+                           >
+                             {name}
+                           </span>
+                         ))}
+                       </div>
+                     ) : (
+                       <p className="mt-1.5 text-[12px] text-ink-soft">No services assigned yet</p>
+                     )}
+                   </CardContent>
+                 </Card>
                );
              })}
            </div>

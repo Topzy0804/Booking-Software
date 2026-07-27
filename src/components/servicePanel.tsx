@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import EmptyState from './emptyState';
 import type { Service } from '@/types/dashboard';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function Services({ initialServices }: { initialServices: Service[] }) {
   const [service, setService] = useState(initialServices);
@@ -124,13 +125,17 @@ export default function Services({ initialServices }: { initialServices: Service
           ) : (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {service.map((s) => (
-                <div key={s.id} className="rounded-lg border border-stone bg-paper-raised p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="font-semibold text-ink">{s.name}</div>
-                    <div className="font-mono text-moss">${(s.priceCents / 100).toFixed(2)}</div>
-                  </div>
-                  <div className="mt-1 text-[12px] text-ink-soft">{s.durationMinutes} minutes</div>
-                </div>
+                <Card key={s.id} className="border-stone bg-paper-raised">
+                  <CardHeader className="pb-2">
+                    <div className="flex items-start justify-between gap-3">
+                      <CardTitle className="text-base font-semibold text-ink">{s.name}</CardTitle>
+                      <div className="font-mono text-moss">${(s.priceCents / 100).toFixed(2)}</div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-[12px] text-ink-soft">{s.durationMinutes} minutes</div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           )}

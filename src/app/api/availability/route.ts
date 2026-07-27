@@ -11,6 +11,7 @@ export async function GET(req: NextRequest) {
 
   const serviceId = req.nextUrl.searchParams.get("serviceId");
   const dateParam = req.nextUrl.searchParams.get("date"); // "YYYY-MM-DD"
+  const excludeBookingId = req.nextUrl.searchParams.get('excludeBookingId') ?? undefined;
   if (!serviceId || !dateParam) {
     return NextResponse.json({ error: "serviceId and date are required" }, { status: 400 });
   }
@@ -33,11 +34,12 @@ export async function GET(req: NextRequest) {
     linkedResources.map(async (r) => ({
       resourceId: r.resourceId,
       resourceName: r.name,
-      stats: await getAvailableSlots({
+      slots: await getAvailableSlots({
         resourceId: r.resourceId,
         day,
         durationMinutes: service.durationMinutes,
         bufferAfterMinutes: service.bufferAfterMinutes,
+        excludeBookingId,
       }),
     }))
   );

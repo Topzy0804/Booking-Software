@@ -181,6 +181,11 @@ export const bookings = pgTable(
       .default("confirmed"),
     priceCentsSnapshot: integer("price_cents_snapshot").notNull(),
     cancellationReason: text("cancellation_reason"),
+    // Null until the 24h reminder cron actually sends one -- this is
+    // what prevents double-sending if the cron runs more often than
+    // once per booking's reminder window, or retries after a partial
+    // failure.
+    reminderSentAt: timestamp("reminder_sent_at", { withTimezone: true, mode: "date" }),
     ...timestamps,
   },
   (t) => [

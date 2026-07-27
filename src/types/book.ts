@@ -22,3 +22,8 @@ export type Client = {
   email: string;
   phone: string;
 };
+
+export type StaffOption = {
+  id: string;
+  name: string;
+};
