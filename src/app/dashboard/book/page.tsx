@@ -21,6 +21,8 @@ export default async function BookingsPage() {
         clientEmail: clients.email,
         serviceName: services.name,
         resourceName: resources.name,
+        resourceId: resources.id,
+        serviceId: services.id,
       })
     .from(bookings)
     .innerJoin(clients, eq(clients.id, bookings.clientId))
