@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import AnalyticsStrip from '@/components/analyticStrip';
 import type { Booking, Client } from '@/types/dashboard';
+import { capitalizeName } from './bookingPanel';
 
 const STATUS_CLASS: Record<Booking['status'], string> = {
   confirmed: 'bg-[#E1E9E2] text-moss-dark',
@@ -111,7 +112,7 @@ export default function OverviewPanel({
                   {recentBookings.map((b) => (
                     <div key={b.id} className="flex items-center justify-between gap-3 py-2.5 text-[13px]">
                       <div className="min-w-0">
-                        <div className="truncate font-semibold text-ink">{b.clientName}</div>
+                        <div className="truncate font-semibold text-ink">{capitalizeName(b.clientName)}</div>
                         <div className="truncate text-[12px] text-ink-soft">{b.serviceName}</div>
                       </div>
                       <div className="flex flex-shrink-0 flex-col items-end gap-1">
@@ -148,7 +149,7 @@ export default function OverviewPanel({
                   {recentClients.map((c) => (
                     <div key={c.id} className="flex items-center justify-between gap-3 py-2.5 text-[13px]">
                       <div className="min-w-0">
-                        <div className="truncate font-semibold text-ink">{c.fullName}</div>
+                        <div className="truncate font-semibold text-ink">{capitalizeName(c.fullName)}</div>
                         <div className="truncate text-[12px] text-ink-soft">{c.email}</div>
                       </div>
                       <span className="flex-shrink-0 font-mono text-[12px] text-ink-soft">

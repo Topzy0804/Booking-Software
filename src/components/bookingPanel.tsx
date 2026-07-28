@@ -21,6 +21,15 @@ const STATUS_CLASS: Record<BookingStatus, string> = {
   no_show: "bg-[#EFEBE0] text-ink-soft",
 };
 
+export function capitalizeName(name: string) {
+  return name
+    .toLowerCase()
+    .split(" ")
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
 export default function BookingsPanel({
   initialBookings,
   services,
@@ -37,7 +46,7 @@ export default function BookingsPanel({
   const [showNewBooking, setShowNewBooking] = useState(false);
   const [view, setView] = useState<"list" | "calendar">("list");
   const [page, setPage] = useState(1);
-  const PAGE_SIZE = 10;
+  const PAGE_SIZE = 10; 
 
   async function updateStatus(id: string, status: BookingStatus) {
     setUpdatingId(id);
@@ -60,7 +69,7 @@ export default function BookingsPanel({
   }
 
   const sorted = [...bookings].sort(
-    (a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime()
+    (a, b) => new Date(b.startsAt).getTime() - new Date(a.startsAt).getTime()
   );
   const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
@@ -142,7 +151,7 @@ export default function BookingsPanel({
                   })}
                 </div>
                 <div>
-                  <div className="font-semibold text-ink">{b.clientName}</div>
+                  <div className="font-semibold text-ink">{capitalizeName(b.clientName)}</div>
                   <div className="text-[11px] text-ink-soft">{b.clientEmail}</div>
                 </div>
                 <div className="text-ink-soft">{b.serviceName}</div>
@@ -191,7 +200,7 @@ export default function BookingsPanel({
               <div key={b.id} className="rounded-lg border border-stone bg-paper-raised p-4">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <div className="truncate capitalize font-semibold text-ink">{b.clientName}</div>
+                    <div className="truncate capitalize font-semibold text-ink">{capitalizeName(b.clientName)}</div>
                     <div className="truncate text-[11px] text-ink-soft">{b.clientEmail}</div>
                   </div>
                   <span

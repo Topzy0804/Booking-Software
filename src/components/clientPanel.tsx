@@ -3,6 +3,7 @@
 import { useState } from "react";
 import EmptyState from "./emptyState";
 import type { Client } from "@/types/dashboard";
+import { capitalizeName } from "./bookingPanel";
 
 const PAGE_SIZE = 10;
 
@@ -43,7 +44,7 @@ export default function ClientsPanel({ clients }: { clients: Client[] }) {
                 key={c.id}
                 className="grid grid-cols-[1.4fr_1fr_1fr_90px] items-center gap-3 border-t border-stone-soft px-4 py-3 text-[13px]"
               >
-                <div className="font-semibold text-ink">{c.fullName}</div>
+                <div className="font-semibold text-ink">{capitalizeName(c.fullName)}</div>
                 <div className="text-ink-soft">{c.email}</div>
                 <div className="text-ink-soft">{c.phone ?? "—"}</div>
                 <div className="text-right font-mono text-ink">{c.bookingCount}</div>
@@ -57,7 +58,7 @@ export default function ClientsPanel({ clients }: { clients: Client[] }) {
               <div key={c.id} className="rounded-lg border border-stone bg-paper-raised p-4">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <div className="truncate font-semibold text-ink">{c.fullName}</div>
+                    <div className="truncate font-semibold text-ink">{capitalizeName(c.fullName)}</div>
                     <div className="truncate text-[12px] text-ink-soft">{c.email}</div>
                   </div>
                   <div className="shrink-0 text-right">
