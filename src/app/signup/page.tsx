@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { toast } from 'sonner';
+import { toast } from "sonner";
 import PasswordInput from "@/components/passwordInput";
 
 export default function SignupPage() {
@@ -19,33 +19,30 @@ export default function SignupPage() {
     e.preventDefault();
     setError(null);
     setLoading(true);
-    try {
-      const res = await fetch("/api/auth/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error);
-        setLoading(false);
-        return;
-      }
-      toast.success("Account created successfully");
-      setTimeout(() => {
-        // In production this would be https://{subdomain}.yourapp.com/dashboard
-        // Use the browser's actual current host:port rather than assuming
-        // 3000 -- Next.js falls back to 3001, 3002, etc. if 3000 is busy.
-        window.location.href = `${window.location.protocol}//${data.redirectSubdomain}.${window.location.host}/dashboard`;
-      }, 700);
-    } finally {
+    const res = await fetch("/api/auth/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(form),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.error);
       setLoading(false);
+      return;
     }
+    toast.success("Business created successfully");
+    setTimeout(() => {
+      // Strip a leading "www." before building the tenant URL --
+      // without this, signing up while on www.modabyz.me would
+      // produce "acme.www.modabyz.me" (two subdomain levels), which
+      // the *.modabyz.me wildcard does NOT cover and would 404.
+      const rootHost = window.location.host.replace(/^www\./, "");
+      window.location.href = `${window.location.protocol}//${data.redirectSubdomain}.${rootHost}/dashboard`;
+    }, 700);
   }
 
   return (
     <main className="flex flex-1">
-      {/* Left panel: brand + testimonial, mirrors the mockup's auth-side */}
       <div className="hidden w-[42%] flex-col justify-between bg-moss px-12 py-14 text-[#F3F0E4] lg:flex">
         <div className="font-display text-xl">◆ Ledger</div>
         <blockquote className="font-display text-2xl font-medium leading-snug">
@@ -58,7 +55,6 @@ export default function SignupPage() {
         <div />
       </div>
 
-      {/* Right panel: the actual form */}
       <div className="flex flex-1 items-center justify-center px-6 py-16">
         <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4">
           <div>
@@ -91,7 +87,10 @@ export default function SignupPage() {
                 onChange={(e) => setForm({ ...form, subdomain: e.target.value.toLowerCase() })}
               />
               <span className="mt-1 whitespace-nowrap rounded-r-md border border-l-0 border-stone bg-stone-soft px-3 py-2 font-mono text-[13px] text-ink-soft">
-                .{typeof window !== "undefined" ? window.location.host : "localhost:3000"}
+                .
+                {typeof window !== "undefined"
+                  ? window.location.host.replace(/^www\./, "")
+                  : "localhost:3000"}
               </span>
             </div>
           </Field>
@@ -131,18 +130,6 @@ export default function SignupPage() {
           >
             {loading ? "Creating…" : "Create business"}
           </button>
-          <p className="text-xs text-ink-soft">
-            By creating a business, you agree to our{" "}
-            <a href="/terms" className="underline hover:no-underline">
-              Terms of Service
-            </a>{" "}
-            and{" "}
-            <a href="/privacy" className="underline hover:no-underline">
-              Privacy Policy
-            </a>
-            .
-          </p>
-          <p className='text-xs text-ink-soft'>already have an account? <a href="/login" className="underline hover:no-underline">Sign in</a></p>
         </form>
       </div>
     </main>
@@ -162,7 +149,7 @@ function Field({
     <label className="block">
       <span className="text-[13px] font-semibold text-ink">{label}</span>
       {children}
-      {hint && <span className="mt-1 block text-xs text-ink-soft">{hint}</span>}
+      {hint && <span className="mt-1 block text-[11px] text-ink-soft">{hint}</span>}
     </label>
   );
 }

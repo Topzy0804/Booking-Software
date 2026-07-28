@@ -10,23 +10,30 @@ import { NextRequest, NextResponse } from "next/server";
 // "x-tenant-subdomain" request header, which server components/route
 // handlers read to scope every query to the right tenant.
 
-const ROOT_DOMAINS = ["localhost:3000", "localhost", process.env.ROOT_DOMAIN].filter(
+const PRODUCTION_FALLBACK = "modabyz.me"; 
+
+const ROOT_DOMAINS = ["localhost:3000", "localhost", process.env.ROOT_DOMAIN?.split(":")[0] || PRODUCTION_FALLBACK,].filter(
   Boolean
 ) as string[];
 
 export function proxy(req: NextRequest) {
   const host = req.headers.get("host") || "";
+  const hostname = host.split(":")[0];
 
   let subdomain: string | null = null;
 
   for (const root of ROOT_DOMAINS) {
-    if (host === root) {
+    if (hostname === root || hostname === `www.${root}`) {
       // Request to the bare root domain (marketing site / tenant signup)
       subdomain = null;
       break;
     }
-    if (host.endsWith(`.${root}`)) {
-      subdomain = host.slice(0, host.length - root.length - 1);
+    if (hostname.endsWith(`.${root}`)) {
+      const candidate = hostname.slice(0, hostname.length - root.length - 1);
+
+      if (!candidate.includes(".")) {
+        subdomain = candidate;
+      }
       break;
     }
   }

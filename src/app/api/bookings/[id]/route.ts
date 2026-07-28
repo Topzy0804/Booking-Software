@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db/client";
-import { bookings, services } from "@/db/schema";
+import { bookings, services, clients, resources, tenants } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { requireTenantSession } from "@/lib/requireAuth";
 import { rescheduleBooking, BookingConflictError } from "@/lib/booking";
 import { z } from "zod";
+import { sendBookingCancellationEmail } from "@/lib/email";
 
 
 const schema = z.object({
@@ -18,6 +19,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (!auth) return NextResponse.json({ error: "Not signed in" }, { status: 401 });
 
   const { id } = await params;
+
   const parsed = schema.safeParse(await req.json());
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
@@ -29,6 +31,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     .from(bookings)
     .where(and(eq(bookings.id, id), eq(bookings.tenantId, auth.tenant.id)));
   if (!existing) return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+
 
 
   if (startsAt !== undefined || resourceId !== undefined) {
@@ -57,13 +60,50 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
 
   // Status-only path (cancel / attended / no-show) -- no time change,
   if (status !== undefined) {
+    const willCancel = status === 'cancelled' && existing.status !== 'cancelled';
+
+
     const [updated] = await db
       .update(bookings)
       .set({ status, updatedAt: new Date() })
       .where(and(eq(bookings.id, id), eq(bookings.tenantId, auth.tenant.id)))
       .returning();
+
+      if (willCancel) {
+        const [details] = await db
+          .select({
+            clientName: clients.fullName,
+            clientEmail: clients.email,
+            serviceName: services.name,
+            durationMinutes: services.durationMinutes,
+            priceCentsSnapshot: bookings.priceCentsSnapshot,
+            resourceName: resources.name,
+            tenantName: tenants.name,
+            startsAt: bookings.startsAt,
+          })
+          .from(bookings)
+          .innerJoin(clients, eq(clients.id, bookings.clientId))
+          .innerJoin(services, eq(services.id, bookings.serviceId))
+          .innerJoin(resources, eq(resources.id, bookings.resourceId))
+          .innerJoin(tenants, eq(tenants.id, bookings.tenantId))
+          .where(and(eq(bookings.id, id), eq(bookings.tenantId, auth.tenant.id)));
+
+        if (details) {
+          await sendBookingCancellationEmail({
+            to: details.clientEmail,
+            clientName: details.clientName,
+            tenantName: details.tenantName,
+            serviceName: details.serviceName,
+            resourceName: details.resourceName,
+            startsAt: details.startsAt,
+            durationMinutes: details.durationMinutes,
+            priceCents: details.priceCentsSnapshot,
+            cancelledBy: "staff",
+          });
+        }
+      }
     return NextResponse.json({ booking: updated });
   }
 
-  return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
+  return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
 }

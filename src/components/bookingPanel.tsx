@@ -191,7 +191,7 @@ export default function BookingsPanel({
               <div key={b.id} className="rounded-lg border border-stone bg-paper-raised p-4">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <div className="truncate font-semibold text-ink">{b.clientName}</div>
+                    <div className="truncate capitalize font-semibold text-ink">{b.clientName}</div>
                     <div className="truncate text-[11px] text-ink-soft">{b.clientEmail}</div>
                   </div>
                   <span

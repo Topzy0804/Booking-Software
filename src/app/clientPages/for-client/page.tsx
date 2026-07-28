@@ -72,7 +72,7 @@ function ConfirmationReceipt() {
           Bright Cuts Barbershop
         </div>
         <div className="mt-0.5 font-mono text-[10px] text-ink-soft">
-          brightcuts.topzycorp.app
+          brightcuts.modabyyz.me
         </div>
       </div>
       <div className="px-6 py-1">
@@ -128,6 +128,7 @@ function FindBusiness() {
       // Confirmed to exist -- safe to redirect. Uses the real
       // subdomain returned by the API (not the raw typed value)
       // in case casing/whitespace differed.
+      
       window.location.href = `${window.location.protocol}//${data.subdomain}.${window.location.host}/book`;
     } catch {
       setError("Something went wrong checking that. Try again.");

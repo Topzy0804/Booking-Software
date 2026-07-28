@@ -1,10 +1,11 @@
-import { Resend } from 'resend';
+import { Resend } from "resend";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 const FROM_ADDRESS = process.env.EMAIL_FROM || "Booking MVP <onboarding@resend.dev>";
 
-export async function sendBookingConfirmationEmail(params: {
+
+type BookingEmailParams = {
   to: string;
   clientName: string;
   tenantName: string;
@@ -13,143 +14,131 @@ export async function sendBookingConfirmationEmail(params: {
   startsAt: Date;
   durationMinutes: number;
   priceCents: number;
-}): Promise<boolean> {
-  if (!resend) {
-    console.warn(
-      "[email] RESEND_API_KEY not set -- skipping confirmation email for",
-      params.to
-    );
-    return false;
-  }
+};
 
-  const dateLabel = params.startsAt.toLocaleDateString(undefined, {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
-  const timeLabel = params.startsAt.toLocaleTimeString(undefined, {
-    hour: "numeric",
-    minute: "2-digit",
-  });
-  const priceLabel = `$${(params.priceCents / 100).toFixed(2)}`;
+function deriveLabels(params: BookingEmailParams) {
+  return {
+    dateLabel: params.startsAt.toLocaleDateString(undefined, {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+    }),
+    timeLabel: params.startsAt.toLocaleTimeString(undefined, {
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
+    priceLabel: `$${(params.priceCents / 100).toFixed(2)}`,
+  };
+}
+
+export async function sendBookingConfirmationEmail(params: BookingEmailParams) {
+  if (!resend) {
+    console.warn("[email] RESEND_API_KEY not set -- skipping confirmation email for", params.to);
+    return;
+  }
+  const labels = deriveLabels(params);
 
   try {
-    const result = await resend.emails.send({
+    await resend.emails.send({
       from: FROM_ADDRESS,
       to: params.to,
       subject: `You're booked with ${params.tenantName}`,
-      html: renderConfirmationHtml({ ...params, dateLabel, timeLabel, priceLabel }),
+      html: renderCard({
+        ...params,
+        ...labels,
+        accentColor: "#3E5C46",
+        icon: "&#10003;",
+        heading: "You're booked",
+        subtext: `Hi ${escapeHtml(params.clientName)}, your appointment with ${escapeHtml(params.tenantName)} is confirmed.`,
+      }),
     });
-
-    if (result.error) {
-      console.error("[email] Resend rejected booking confirmation:", result.error);
-      return false;
-    }
-
-    return true;
-  } catch (err) {
-    console.error("[email] Failed to send booking confirmation:", err);
-    return false;
+  }
+  catch (error) {
+    console.error("[email] Error sending confirmation email for", params.to, error);
   }
 }
 
-function renderConfirmationHtml(params: {
-  clientName: string;
-  tenantName: string;
-  serviceName: string;
-  resourceName: string;
-  durationMinutes: number;
-  dateLabel: string;
-  timeLabel: string;
-  priceLabel: string;
-}) {
-  return `
-   <div style="background:#F7F5EF; padding:32px 16px; font-family:Georgia, 'Times New Roman', serif; color:#22261F;">
-    <div style="max-width:420px; margin:0 auto; background:#FFFFFF; border-radius:10px; padding:32px 28px; box-shadow:0 10px 30px rgba(34,38,31,0.08);">
-      <div style="width:44px; height:44px; border-radius:50%; background:#3E5C46; color:#fff; font-size:20px; line-height:44px; text-align:center; margin:0 auto 16px;">&#10003;</div>
-      <h1 style="font-size:19px; text-align:center; margin:0 0 4px;">You're booked</h1>
-      <p style="font-family:Arial, Helvetica, sans-serif; font-size:13px; color:#55594E; text-align:center; margin:0 0 20px;">
-        Hi ${escapeHtml(params.clientName)}, your appointment with ${escapeHtml(params.tenantName)} is confirmed.
-      </p>
-      <div style="border-top:1px dashed #DDD6C5; margin:20px 0;"></div>
-      ${row("Service", `${escapeHtml(params.serviceName)}, ${params.durationMinutes}min`)}
-      ${row("With", escapeHtml(params.resourceName))}
-      ${row("Date", params.dateLabel)}
-      ${row("Time", params.timeLabel)}
-      ${row("Total", params.priceLabel)}
-    </div>
-    <p style="font-family:Arial, Helvetica, sans-serif; font-size:11px; color:#55594E; text-align:center; margin-top:16px;">
-      Need to reschedule or cancel? Reply to this email or contact ${escapeHtml(params.tenantName)} directly.
-    </p>
-  </div>`;
-}
 
-export async function sendBookingReminderEmail(params: {
-  to: string;
-  clientName: string;
-  tenantName: string;
-  serviceName: string;
-  resourceName: string;
-  startsAt: Date;
-  durationMinutes: number;
-  priceCents: number;
-}): Promise<boolean> {
+export async function sendBookingReminderEmail(params: BookingEmailParams): Promise<boolean> {
   if (!resend) {
-    console.warn(
-      "[email] RESEND_API_KEY not set -- skipping reminder email for",
-      params.to
-    );
+    console.warn("[email] RESEND_API_KEY not set -- skipping reminder email for", params.to);
     return false;
   }
 
-  const dateLabel = params.startsAt.toLocaleDateString(undefined, {
-    weekday: "long",
-    month: "long",
-    day: "numeric",
-  });
-  const timeLabel = params.startsAt.toLocaleTimeString(undefined, {
-    hour: "numeric",
-    minute: "2-digit",
-  });
-  const priceLabel = `$${(params.priceCents / 100).toFixed(2)}`;
+  const labels = deriveLabels(params);
 
   try {
-    const result = await resend.emails.send({
+    await resend.emails.send({
       from: FROM_ADDRESS,
       to: params.to,
-      subject: `Reminder: your appointment with ${params.tenantName} is tomorrow`,
-      html: renderReminderHtml({ ...params, dateLabel, timeLabel, priceLabel }),
+      subject: `Reminder: Your appointment with ${params.tenantName} is coming up`,
+      html: renderCard({
+        ...params,
+        ...labels,
+        accentColor: "#3E5C46",
+        icon: "&#128276;",
+        heading: "Reminder: Your appointment is coming up",
+        subtext: `Hi ${escapeHtml(params.clientName)}, this is a reminder that your appointment with ${escapeHtml(params.tenantName)} is coming up.`,
+      }),
     });
-
-    if (result.error) {
-      console.error("[email] Resend rejected booking reminder:", result.error);
-      return false;
-    }
-
     return true;
-  } catch (err) {
-    console.error("[email] Failed to send booking reminder:", err);
+  }
+  catch (error) {
+    console.error("[email] Error sending reminder email for", params.to, error);
     return false;
   }
 }
 
-function renderReminderHtml(params: {
-  clientName: string;
+export async function sendBookingCancellationEmail(params: BookingEmailParams & { cancelledBy?: "staff" | "client" }) {
+  if (!resend) {
+    console.warn("[email] RESEND_API_KEY not set -- skipping cancellation email for", params.to);
+    return;
+  }
+
+  const labels = deriveLabels(params);
+
+  try {
+    await resend.emails.send({
+      from: FROM_ADDRESS,
+      to: params.to,
+      subject: `Your appointment with ${params.tenantName} has been cancelled`,
+      html: renderCard({
+        ...params,
+        ...labels,
+        accentColor: "#C0392B",
+        icon: "&#10005;",
+        heading: "Your appointment has been cancelled",
+        subtext: `Hi ${escapeHtml(params.clientName)}, your appointment with ${escapeHtml(params.tenantName)} has been cancelled.`,
+      }),
+    });
+  }
+  catch (error) {
+    console.error("[email] Error sending cancellation email for", params.to, error);
+  }
+}
+
+
+function renderCard(params: {
   tenantName: string;
   serviceName: string;
   resourceName: string;
   durationMinutes: number;
+  accentColor: string;
+  icon: string;
+  heading: string;
+  subtext: string;
   dateLabel: string;
   timeLabel: string;
   priceLabel: string;
 }) {
+
   return `
   <div style="background:#F7F5EF; padding:32px 16px; font-family:Georgia, 'Times New Roman', serif; color:#22261F;">
     <div style="max-width:420px; margin:0 auto; background:#FFFFFF; border-radius:10px; padding:32px 28px; box-shadow:0 10px 30px rgba(34,38,31,0.08);">
-      <div style="width:44px; height:44px; border-radius:50%; background:#B08A3E; color:#fff; font-size:19px; line-height:44px; text-align:center; margin:0 auto 16px;">&#8987;</div>
-      <h1 style="font-size:19px; text-align:center; margin:0 0 4px;">See you tomorrow</h1>
+      <div style="width:44px; height:44px; border-radius:50%; background:${params.accentColor}; color:#fff; font-size:19px; line-height:44px; text-align:center; margin:0 auto 16px;">${params.icon}</div>
+      <h1 style="font-size:19px; text-align:center; margin:0 0 4px;">${params.heading}</h1>
       <p style="font-family:Arial, Helvetica, sans-serif; font-size:13px; color:#55594E; text-align:center; margin:0 0 20px;">
-        Hi ${escapeHtml(params.clientName)}, a reminder that your appointment with ${escapeHtml(params.tenantName)} is coming up.
+        ${params.subtext}
       </p>
       <div style="border-top:1px dashed #DDD6C5; margin:20px 0;"></div>
       ${row("Service", `${escapeHtml(params.serviceName)}, ${params.durationMinutes}min`)}
@@ -159,9 +148,9 @@ function renderReminderHtml(params: {
       ${row("Total", params.priceLabel)}
     </div>
     <p style="font-family:Arial, Helvetica, sans-serif; font-size:11px; color:#55594E; text-align:center; margin-top:16px;">
-      Need to reschedule or cancel? Reply to this email or contact ${escapeHtml(params.tenantName)} directly.
+      Questions? Reply to this email or contact ${escapeHtml(params.tenantName)} directly.
     </p>
-  </div>`;
+  </div>`
 }
 
 function row(label: string, value: string) {
@@ -171,9 +160,12 @@ function row(label: string, value: string) {
       <td style="color:#55594E; padding:4px 0;">${label}</td>
       <td style="text-align:right; font-weight:600; color:#22261F; padding:4px 0;">${value}</td>
     </tr>
-  </table>`;
+  </table>`
 }
 
 function escapeHtml(str: string) {
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;');
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
 }
