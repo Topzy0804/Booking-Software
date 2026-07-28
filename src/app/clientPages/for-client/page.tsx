@@ -128,8 +128,8 @@ function FindBusiness() {
       // Confirmed to exist -- safe to redirect. Uses the real
       // subdomain returned by the API (not the raw typed value)
       // in case casing/whitespace differed.
-      
-      window.location.href = `${window.location.protocol}//${data.subdomain}.${window.location.host}/book`;
+      const rootHost = window.location.host.replace(/^www\./, "");
+      window.location.href = `${window.location.protocol}//${data.subdomain}.${rootHost}/book`;
     } catch {
       setError("Something went wrong checking that. Try again.");
     } finally {
@@ -163,7 +163,9 @@ function FindBusiness() {
             className="min-w-0 flex-1 px-3 py-2.5 text-sm text-ink outline-none"
           />
           <span className="flex items-center border-l border-stone bg-stone-soft px-3 font-mono text-xs text-ink-soft">
-            .{typeof window !== "undefined" ? window.location.host : "localhost:3000"}
+            .{typeof window !== "undefined"
+                  ? window.location.host.replace(/^www\./, "")
+                  : "localhost:3000"}
           </span>
         </div>
 
