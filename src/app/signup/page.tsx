@@ -44,7 +44,7 @@ export default function SignupPage() {
   return (
     <main className="flex flex-1">
       <div className="hidden w-[42%] flex-col justify-between bg-moss px-12 py-14 text-[#F3F0E4] lg:flex">
-        <div className="font-display text-xl">◆ Ledger</div>
+        <div className="font-display text-xl">◆ Topzy</div>
         <blockquote className="font-display text-2xl font-medium leading-snug">
           &ldquo;Set up took less time than my morning coffee. Clients started
           booking themselves the same afternoon.&rdquo;

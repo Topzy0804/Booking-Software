@@ -9,7 +9,7 @@ const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/clientPages/for-business', label: 'For Businesses' },
   { href: '/clientPages/for-client', label: 'For Clients' },
-  { href: '/pricing', label: 'Pricing' },
+  { href: '/clientPages/pricing', label: 'Pricing' },
 ];
 
 export default function Navbar() {
