@@ -2,12 +2,13 @@
 
 import { useMemo } from 'react';
 import type { Booking } from '@/types/dashboard';
+import { Card, CardHeader, CardContent } from '@/components/ui/card'
 
 export default function AnalysticsStrip({ bookings }: { bookings: Booking[] }) {
   const stats = useMemo(() => computeStats(bookings), [bookings]);
 
   return (
-    <div className="mb-6 grid grid-cols-3 divide-x divide-stone-soft rounded-lg border border-stone bg-paper-raised">
+    <div className="mb-6 grid grid-cols-3 bg-paper-raised overflow-hidden">
       <Stat number={stats.upcoming} label="Upcoming bookings" />
       <Stat number={stats.thisWeek} label="This week" />
       <Stat number={stats.noShows} label="No-shows" />
@@ -18,8 +19,10 @@ export default function AnalysticsStrip({ bookings }: { bookings: Booking[] }) {
 function Stat({ number, label }: { number: number; label: string }) {
   return (
     <div className="px-5 py-4 text-center">
-      <div className="font-mono text-2xl font-semibold text-moss">{number}</div>
-      <div className="mt-0.5 text-xs text-ink-soft">{label}</div>
+      <Card className="bg-paper-raised border-stone-soft border shadow-xl">
+        <CardHeader className='text-2xl font-semibold text-moss'>{number}</CardHeader>
+        <CardContent className='mt-0.5 text-xs text-ink-soft'>{label}</CardContent>
+      </Card>
     </div>
   );
 }

@@ -1,3 +1,5 @@
+import { formatPrice } from '@/lib/currency';
+
 export function ConfirmationStub({
   serviceName,
   durationMinutes,
@@ -33,7 +35,7 @@ export function ConfirmationStub({
         v={start.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" })}
       />
       <Row k="Time" v={start.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })} />
-      <Row k="Total" v={`$${(priceCents / 100).toFixed(2)}`} />
+      <Row k="Total" v={formatPrice(priceCents)} />
     </div>
   );
 }

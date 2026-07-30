@@ -1,3 +1,4 @@
+import { formatPrice } from '@/lib/currency';
 import type { Service } from '@/types/book';
 
 export function ServiceStep({
@@ -26,7 +27,7 @@ export function ServiceStep({
             <div className="mt-0.5 font-mono text-xs text-ink-soft">{s.durationMinutes} min</div>
           </div>
           <div className="font-mono font-medium text-moss">
-            ${(s.priceCents / 100).toFixed(2)}
+            {formatPrice(s.priceCents)}
           </div>
         </button>
       ))}

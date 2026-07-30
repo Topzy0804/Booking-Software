@@ -6,33 +6,90 @@ import EmptyState from './emptyState';
 import type { Service } from '@/types/dashboard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { formatPrice } from '@/lib/currency';
+
+const DEFAULT_FORM = { name: '', durationMinutes: 30, priceCents: 0 };
+
 
 export default function Services({ initialServices }: { initialServices: Service[] }) {
   const [service, setService] = useState(initialServices);
   const [showForm, setShowForm] = useState(initialServices.length === 0);
   const [form, setForm] = useState({ name: '', durationMinutes: 30, priceCents: 0 });
+  const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [removingServiceId, setRemovingServiceId] = useState<string | null>(null)
+
+  function openAddForm() {
+    setEditingServiceId(null);
+    setForm(DEFAULT_FORM);
+    setShowForm(true);
+  }
+
+  function openEditForm(s: Service) {
+    setEditingServiceId(s.id);
+    setForm({
+      name: s.name,
+      durationMinutes: s.durationMinutes,
+      priceCents: s.priceCents,
+    });
+    setShowForm(true);
+  }
+
+  function closeForm() {
+    setShowForm(false)
+    setEditingServiceId(null);
+    setForm(DEFAULT_FORM);
+  }
 
   async function handleAdd(e: React.FormEvent) {
-    e.preventDefault();
-    setSubmitting(true);
+  e.preventDefault();
+  setSubmitting(true);
+  try {
+    const res = await fetch(editingServiceId ? `/api/services/${editingServiceId}` : '/api/services', {
+      method: editingServiceId ? 'PATCH' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(form),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      toast.error(data.error ?? "Couldn't save that service");
+      return;
+    }
+
+    if (editingServiceId) {
+      setService((cur) => cur.map((s) => (s.id === editingServiceId ? data.service : s)));
+      toast.success('Service updated');
+    } else {
+      setService((cur) => [...cur, data.service]);
+      toast.success('Service added');
+    }
+    closeForm();
+  } finally {
+    setSubmitting(false);
+  }
+}
+  async function handleRemove(s: Service) {
+    if (!confirm(`remove '${s.name}'? it ill disapeare from your booking page, but past bookings for it are kept.`)) {
+      return;
+    }
+    setRemovingServiceId(s.id);
     try {
-      const res = await fetch('/api/services', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+      const res = await fetch(`/api/services/${s.id}`, {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ isActive: false }),
       });
+
       const data = await res.json();
       if (!res.ok) {
-        toast.error(data.error ?? "Couldn't add that service");
+        toast.error(data.error ?? "couldn't remove this service");
         return;
       }
-      setService([...service, data.service]);
-      setForm({ name: '', durationMinutes: 30, priceCents: 0 });
-      setShowForm(false);
-      toast.success("Service added");
+
+      setService((cur) => cur.filter((svc) => svc.id !== s.id));
+      toast.success('service removed');
     } finally {
-      setSubmitting(false);
+      setRemovingServiceId(null);
     }
   }
 
@@ -83,7 +140,7 @@ export default function Services({ initialServices }: { initialServices: Service
                 />
               </label>
               <label>
-                <span className="text-xs font-semibold text-ink">Price ($)</span>
+                <span className="text-xs font-semibold text-ink">Price{formatPrice(form.priceCents)}</span>
                 <input
                   required
                   type="number"
@@ -129,11 +186,22 @@ export default function Services({ initialServices }: { initialServices: Service
                   <CardHeader className="pb-2">
                     <div className="flex items-start justify-between gap-3">
                       <CardTitle className="text-base font-semibold text-ink">{s.name}</CardTitle>
-                      <div className="font-mono text-moss">${(s.priceCents / 100).toFixed(2)}</div>
+                      <div className="font-mono text-moss">{formatPrice(s.priceCents)}</div>
                     </div>
                   </CardHeader>
                   <CardContent>
                     <div className="text-[12px] text-ink-soft">{s.durationMinutes} minutes</div>
+                    <div className='flex shrink-0 gap-1'>
+                      <Button
+                      onClick={() => openEditForm(s)}
+                      className='rounded-md px-2 py-1 text-xs hover:bg-stone-soft font-medium text-ink-soft'
+                      >Edit</Button>
+                      <Button
+                      disabled={removingServiceId === s.id}
+                      onClick={() => handleRemove(s)}
+                      className='rounded-md px-2 py-1 text-xs hover:bg-stone-soft font-medium text-ink-soft disabled:opacity-50'
+                      >Remove</Button>
+                    </div>
                   </CardContent>
                 </Card>
               ))}

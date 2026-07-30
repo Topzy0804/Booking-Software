@@ -130,6 +130,9 @@ export default function SignupPage() {
           >
             {loading ? "Creating…" : "Create business"}
           </button>
+          <div className='text-xs text-moss'>
+            <p>Already have an account? <a href="/login" className="text-moss text-xs hover:underline">Sign in</a></p>
+          </div>
         </form>
       </div>
     </main>

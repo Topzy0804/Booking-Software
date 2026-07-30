@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { Booking, Service } from '@/types/dashboard';
 import { StaffOption } from '@/types/book';
 import { toDateParam } from '@/lib/bookingHelper';
+import { formatPrice } from '@/lib/currency';
 
 export default function NewBookingModal({
   services,
@@ -155,7 +156,7 @@ export default function NewBookingModal({
               >
                 {services.map((s) => (
                   <option key={s.id} value={s.id}>
-                    {s.name} — {s.durationMinutes}min, ${(s.priceCents / 100).toFixed(2)}
+                    {s.name} — {s.durationMinutes}min, {formatPrice(s.priceCents)}
                   </option>
                 ))}
               </select>

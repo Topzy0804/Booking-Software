@@ -71,7 +71,7 @@ export default function LoginForm() {
       <p className="text-xs text-ink-soft">
         Sign in from your business&rsquo;s own address, e.g.{" "}
         <code className="rounded bg-stone-soft px-1 py-0.5">
-          acme.localhost:&lt;port&gt;/login
+          acme.modabyz.me/login
         </code>{" "}
         (whatever port your terminal shows).
       </p>
