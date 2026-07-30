@@ -189,7 +189,7 @@ export default function Services({ initialServices }: { initialServices: Service
                       <div className="font-mono text-moss">{formatPrice(s.priceCents)}</div>
                     </div>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className='flex items-center justify-between'>
                     <div className="text-[12px] text-ink-soft">{s.durationMinutes} minutes</div>
                     <div className='flex shrink-0 gap-1'>
                       <Button
