@@ -1,5 +1,6 @@
 import type { Client } from '@/types/book';
 import { Button } from '@/components/ui/button';
+import { formatPrice } from '@/lib/currency';
 
 export function DetailsStep({
   client,
@@ -51,7 +52,7 @@ export function DetailsStep({
         disabled={submitting}
         className="w-full rounded-md bg-moss px-4 py-2.5 text-sm font-semibold text-white hover:bg-moss-dark disabled:opacity-50"
       >
-        {submitting ? "Confirming…" : `Confirm booking — $${(priceCents / 100).toFixed(2)}`}
+        {submitting ? "Confirming…" : `Confirm booking — ${formatPrice(priceCents)}`}
       </Button>
       <Button
         type="button"

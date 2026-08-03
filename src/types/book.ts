@@ -7,9 +7,7 @@ export type Service = {
 
 export type MergedSlot = {
   startISO: string;
-  resourceId: string;
-  resourceName: string;
-  resources: {
+  candidates: {
     resourceId: string;
     resourceName: string;
   }[];
@@ -27,3 +25,5 @@ export type StaffOption = {
   id: string;
   name: string;
 };
+
+export type Preference = 'any' | 'specific';

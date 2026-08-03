@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import { formatPrice } from '@/lib/currency';
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
@@ -14,6 +15,7 @@ type BookingEmailParams = {
   startsAt: Date;
   durationMinutes: number;
   priceCents: number;
+  manageUrl?: string;
 };
 
 function deriveLabels(params: BookingEmailParams) {
@@ -27,7 +29,7 @@ function deriveLabels(params: BookingEmailParams) {
       hour: "2-digit",
       minute: "2-digit",
     }),
-    priceLabel: `$${(params.priceCents / 100).toFixed(2)}`,
+    priceLabel: `${formatPrice(params.priceCents)} total`,
   };
 }
 
@@ -130,6 +132,7 @@ function renderCard(params: {
   dateLabel: string;
   timeLabel: string;
   priceLabel: string;
+  manageUrl?: string;
 }) {
 
   return `
@@ -146,6 +149,15 @@ function renderCard(params: {
       ${row("Date", params.dateLabel)}
       ${row("Time", params.timeLabel)}
       ${row("Total", params.priceLabel)}
+      ${
+        params.manageUrl
+          ? `<div style="text-align:center; margin-top:20px;">
+               <a href="${params.manageUrl}" style="display:inline-block; background:#3E5C46; color:#fff; font-family:Arial, Helvetica, sans-serif; font-size:13px; font-weight:600; text-decoration:none; padding:10px 20px; border-radius:6px;">
+                 Manage this booking
+               </a>
+             </div>`
+          : ""
+      }
     </div>
     <p style="font-family:Arial, Helvetica, sans-serif; font-size:11px; color:#55594E; text-align:center; margin-top:16px;">
       Questions? Reply to this email or contact ${escapeHtml(params.tenantName)} directly.
@@ -168,4 +180,5 @@ function escapeHtml(str: string) {
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
 }

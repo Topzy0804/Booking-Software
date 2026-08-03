@@ -3,8 +3,8 @@
 import { useState, useMemo, useEffect } from 'react';
 import { toast } from 'sonner';
 
-import type { Service, MergedSlot, Step, Client } from '@/types/book';
-import { buildNextDays, toDateParam, mergeSlots } from '@/lib/bookingHelper';
+import type { Service, MergedSlot, Step, Client, Preference, StaffOption } from '@/types/book';
+import { buildNextDays, toDateParam, mergeSlots, buildSlotsForResource } from '@/lib/bookingHelper';
 import { ServiceStep } from '@/components/book/serviceStep';
 import { DateTimeStep } from '@/components/book/dateTimeStep';
 import { DetailsStep } from '@/components/book/detailStep';
@@ -25,6 +25,12 @@ export default function BookingFlow({
   const days = useMemo(() => buildNextDays(14), []);
   const [selectedDay, setSelectedDay] = useState(days[0]);
 
+  // Staff preference: "any" keeps the fair auto-assign/shuffle
+  // behavior (default); "specific" lets the client pick who they see.
+  const [preference, setPreference] = useState<Preference>('any');
+  const [allStaff, setAllStaff] = useState<{ id: string; name: string; serviceIds: string[] }[]>([]);
+  const [chosenStaffId, setChosenStaffId] = useState<string>('');
+
   const [slots, setSlots] = useState<MergedSlot[]>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState<MergedSlot | null>(null);
@@ -34,10 +40,40 @@ export default function BookingFlow({
   const [confirmed, setConfirmed] = useState<{
     startISO: string;
     resourceName: string;
+    manageUrl: string;
   } | null>(null);
+
+  // Load every staff member once, so "choose staff" can filter down
+  // to whoever's actually qualified for the selected service.
+  useEffect(() => {
+    fetch('/api/resources')
+      .then((res) => res.json())
+      .then((data) => setAllStaff(data.resources ?? []))
+      .catch(() => {});
+  }, []);
+
+  const qualifiedStaff: StaffOption[] = useMemo(
+    () =>
+      selectedService
+        ? allStaff
+            .filter((r) => r.serviceIds.includes(selectedService.id))
+            .map((r) => ({ id: r.id, name: r.name }))
+        : [],
+    [allStaff, selectedService]
+  );
+
+  // Reset the chosen staff member whenever the service changes -- the
+  // previous pick might not perform the new service.
+  useEffect(() => {
+    setChosenStaffId(qualifiedStaff[0]?.id ?? '');
+  }, [qualifiedStaff]);
 
   useEffect(() => {
     if (step !== 2 || !selectedService) return;
+    if (preference === 'specific' && !chosenStaffId) {
+      setSlots([]);
+      return;
+    }
     const service = selectedService;
     let cancelled = false;
     async function loadSlots() {
@@ -50,7 +86,12 @@ export default function BookingFlow({
         const data = await response.json();
 
         if (cancelled) return;
-        setSlots(mergeSlots(data.availability ?? []));
+        const availability = data.availability ?? [];
+        setSlots(
+          preference === 'specific'
+            ? buildSlotsForResource(availability, chosenStaffId)
+            : mergeSlots(availability)
+        );
       } catch {
         if (!cancelled) {
           toast.error('Failed to fetch availability');
@@ -65,7 +106,7 @@ export default function BookingFlow({
     return () => {
       cancelled = true;
     };
-  }, [step, selectedService, selectedDay]);
+  }, [step, selectedService, selectedDay, preference, chosenStaffId]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -77,31 +118,39 @@ export default function BookingFlow({
     }
     setSubmitting(true);
     try {
-      const res = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          serviceId: selectedService.id,
-          resourceId: selectedSlot.resourceId,
-          resourceIds: selectedSlot.resources.map((resource) => resource.resourceId),
-          startsAt: selectedSlot.startISO,
-          client,
-        }),
-      });
-      const data = await res.json();
+      // Try every staff member who was free for this slot, in order,
+      // before giving up -- covers the gap between "we loaded
+      // availability" and "the client actually submitted". With
+      // preference "specific" this list has exactly one candidate, so
+      // the loop just runs once; no special-casing needed either way.
+      for (const candidate of selectedSlot.candidates) {
+        const res = await fetch('/api/bookings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            serviceId: selectedService.id,
+            resourceId: candidate.resourceId,
+            startsAt: selectedSlot.startISO,
+            client,
+          }),
+        });
+        const data = await res.json();
 
-      if (!res.ok) {
-        toast.error(data.error ?? 'Something went wrong, please try again.');
+        if (res.status === 409) continue;
+        if (!res.ok) {
+          toast.error(data.error ?? 'Something went wrong, please try again.');
+          return;
+        }
+
+        setConfirmed({ startISO: selectedSlot.startISO, resourceName: candidate.resourceName, manageUrl: data.manageUrl });
+        setStep(4);
         return;
       }
 
-      setConfirmed({
-        startISO: selectedSlot.startISO,
-        resourceName: data.resourceName ?? selectedSlot.resourceName,
-      });
-      setStep(4);
+      toast.error('That time just filled up. Please pick another.');
+      setSelectedSlot(null);
+      setStep(2);
+      setSlots((prev) => prev.filter((s) => s.startISO !== selectedSlot.startISO));
     } finally {
       setSubmitting(false);
     }
@@ -123,70 +172,75 @@ export default function BookingFlow({
     );
   }
 
-  return ( 
+  return (
     <main className="flex flex-1 justify-center px-4 py-11">
-          <div className="w-full max-w-105">
-            <div className="mb-7 text-center">
-              <p className="font-mono text-[11px] uppercase tracking-wide text-moss">
-                Book an appointment
-              </p>
-              <div className="font-display text-xl font-semibold text-ink">{tenantName}</div>
-            </div>
-    
-            <div className="mb-7 flex justify-center gap-1.5">
-              {[1, 2, 3, 4].map((s) => (
-                <div
-                  key={s}
-                  className={`h-0.75 w-6 rounded-full ${s <= step ? "bg-moss" : "bg-stone"}`}
-                />
-              ))}
-            </div>
-    
-            {step === 1 && selectedService && (
-              <ServiceStep
-                services={services}
-                selected={selectedService}
-                onSelect={setSelectedService}
-                onNext={() => setStep(2)}
-              />
-            )}
-    
-            {step === 2 && (
-              <DateTimeStep
-                days={days}
-                selectedDay={selectedDay}
-                onSelectDay={setSelectedDay}
-                slots={slots}
-                loading={loadingSlots}
-                selectedSlot={selectedSlot}
-                onSelectSlot={setSelectedSlot}
-                onNext={() => setStep(3)}
-                onBack={() => setStep(1)}
-              />
-            )}
-    
-            {step === 3 && selectedService && (
-              <DetailsStep
-                client={client}
-                setClient={setClient}
-                submitting={submitting}
-                priceCents={selectedService.priceCents}
-                onSubmit={handleSubmit}
-                onBack={() => setStep(2)}
-              />
-            )}
-    
-            {step === 4 && confirmed && selectedService && (
-              <ConfirmationStub
-                serviceName={selectedService.name}
-                durationMinutes={selectedService.durationMinutes}
-                priceCents={selectedService.priceCents}
-                resourceName={confirmed.resourceName}
-                startISO={confirmed.startISO}
-                clientEmail={client.email}
-              />
-            )}
-          </div>
-        </main>
-  )
+      <div className="w-full max-w-105">
+        <div className="mb-7 text-center">
+          <p className="font-mono text-[11px] uppercase tracking-wide text-moss">
+            Book an appointment
+          </p>
+          <div className="font-display text-xl font-semibold text-ink">{tenantName}</div>
+        </div>
+
+        <div className="mb-7 flex justify-center gap-1.5">
+          {[1, 2, 3, 4].map((s) => (
+            <div
+              key={s}
+              className={`h-0.75 w-6 rounded-full ${s <= step ? "bg-moss" : "bg-stone"}`}
+            />
+          ))}
+        </div>
+
+        {step === 1 && selectedService && (
+          <ServiceStep
+            services={services}
+            selected={selectedService}
+            onSelect={setSelectedService}
+            onNext={() => setStep(2)}
+          />
+        )}
+
+        {step === 2 && (
+          <DateTimeStep
+            days={days}
+            selectedDay={selectedDay}
+            onSelectDay={setSelectedDay}
+            preference={preference}
+            onPreferenceChange={setPreference}
+            qualifiedStaff={qualifiedStaff}
+            chosenStaffId={chosenStaffId}
+            onChooseStaff={setChosenStaffId}
+            slots={slots}
+            loading={loadingSlots}
+            selectedSlot={selectedSlot}
+            onSelectSlot={setSelectedSlot}
+            onNext={() => setStep(3)}
+            onBack={() => setStep(1)}
+          />
+        )}
+
+        {step === 3 && selectedService && (
+          <DetailsStep
+            client={client}
+            setClient={setClient}
+            submitting={submitting}
+            priceCents={selectedService.priceCents}
+            onSubmit={handleSubmit}
+            onBack={() => setStep(2)}
+          />
+        )}
+
+        {step === 4 && confirmed && selectedService && (
+          <ConfirmationStub
+            serviceName={selectedService.name}
+            durationMinutes={selectedService.durationMinutes}
+            priceCents={selectedService.priceCents}
+            resourceName={confirmed.resourceName}
+            startISO={confirmed.startISO}
+            clientEmail={client.email}
+          />
+        )}
+      </div>
+    </main>
+  );
 }

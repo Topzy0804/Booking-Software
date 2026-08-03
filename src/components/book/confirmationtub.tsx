@@ -7,6 +7,7 @@ export function ConfirmationStub({
   resourceName,
   startISO,
   clientEmail,
+  manageUrl,
 }: {
   serviceName: string;
   durationMinutes: number;
@@ -14,6 +15,7 @@ export function ConfirmationStub({
   resourceName: string;
   startISO: string;
   clientEmail: string;
+  manageUrl?: string;
 }) {
   const start = new Date(startISO);
   return (
@@ -36,6 +38,13 @@ export function ConfirmationStub({
       />
       <Row k="Time" v={start.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })} />
       <Row k="Total" v={formatPrice(priceCents)} />
+      {manageUrl && (
+        <a
+         href={manageUrl}
+         className="mt-5 block text-center text-xs font-semibold text-moss hover:underline">
+    Manage this booking →
+       </a>
+)}
     </div>
   );
 }

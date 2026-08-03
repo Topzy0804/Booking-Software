@@ -7,6 +7,7 @@ import { requireTenantSession } from "@/lib/requireAuth";
 import { createBooking, BookingConflictError } from "@/lib/booking";
 import { sendBookingConfirmationEmail } from "@/lib/email";
 import { z } from "zod";
+import { createBookingManageToken, buildManageUrl } from '@/lib/bookingToken';
 
 // Staff-facing: list this tenant's bookings, newest first.
 export async function GET() {
@@ -107,6 +108,7 @@ export async function POST(req: NextRequest) {
       });
 
       const resourceName = resourceNameById.get(candidateResourceId)!;
+      const manageUrl = buildManageUrl(tenant.subdomain, createBookingManageToken(booking.id));
 
       await sendBookingConfirmationEmail({
         to: client.email,
@@ -117,9 +119,10 @@ export async function POST(req: NextRequest) {
         serviceName: service.name,
         durationMinutes: service.durationMinutes,
         priceCents: service.priceCents,
+        manageUrl,
       });
 
-      return NextResponse.json({ booking, resourceName });
+      return NextResponse.json({ booking, resourceName, manageUrl });
     } catch (err) {
       if (err instanceof BookingConflictError) {
         continue;

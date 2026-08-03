@@ -24,28 +24,39 @@ export function toDateParam(d: Date): string {
 export function mergeSlots(
   availability: { resourceId: string; resourceName: string; slots: { start: string; end: string }[] }[]
 ): MergedSlot[] {
-  const seen = new Map<string, MergedSlot>();
+  const seen = new Map<string, { resourceId: string; resourceName: string }[]>();
   for (const r of availability) {
     for (const slot of r.slots) {
-      if (!seen.has(slot.start)) {
-        seen.set(slot.start, {
-          startISO: slot.start,
-          resourceId: r.resourceId,
-          resourceName: r.resourceName,
-          resources: [{ resourceId: r.resourceId, resourceName: r.resourceName }],
-        });
-        continue;
-      }
-
-      const existing = seen.get(slot.start);
-      if (!existing) {
-        continue;
-      }
-
-      if (!existing.resources.some((resource) => resource.resourceId === r.resourceId)) {
-        existing.resources.push({ resourceId: r.resourceId, resourceName: r.resourceName });
-      }
+      const existing = seen.get(slot.start) ?? [];
+      existing.push({ resourceId: r.resourceId, resourceName: r.resourceName });
+      seen.set(slot.start, existing);
     }
   }
-  return [...seen.values()].sort((a, b) => a.startISO.localeCompare(b.startISO));
+  return [...seen.entries()]
+    .map(([startISO, candidates]) => ({ startISO, candidates: shuffle(candidates) }))
+    .sort((a, b) => a.startISO.localeCompare(b.startISO));
+}
+
+
+export function buildSlotsForResource(
+  availability: { resourceId: string; resourceName: string; slots: { start: string; end: string }[] }[],
+  resourceId: string
+): MergedSlot[] {
+  const match = availability.find((r) => r.resourceId === resourceId);
+  if (!match) return [];
+  return match.slots
+    .map((slot) => ({
+      startISO: slot.start,
+      candidates: [{ resourceId: match.resourceId, resourceName: match.resourceName }],
+    }))
+    .sort((a, b) => a.startISO.localeCompare(b.startISO));
+}
+
+export function shuffle<T>(arr: T[]): T[] {
+  const copy = [...arr];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
 }
