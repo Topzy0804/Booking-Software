@@ -34,7 +34,7 @@ export default function ManageBookingPage() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    fetch(`/api/manage-booking/${token}`)
+    fetch(`/api/manageBookin/${token}`)
       .then(async (res) => {
         const data = await res.json();
         if (!res.ok) {
