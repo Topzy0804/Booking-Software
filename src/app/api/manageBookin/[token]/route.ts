@@ -119,7 +119,16 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ to
 
   // Reschedule
   try {
-    await rescheduleBooking({ bookingId, newStartsAt: new Date(parsed.data.startsAt) });
+    const startsAt = new Date(parsed.data.startsAt);
+    const durationMs = existing.endsAt.getTime() - existing.startsAt.getTime();
+
+    await rescheduleBooking({
+      id: bookingId,
+      tenantId: existing.tenantId,
+      resourceId: existing.resourceId,
+      startsAt,
+      endsAt: new Date(startsAt.getTime() + durationMs),
+    });
     return NextResponse.json({ ok: true });
   } catch (err) {
     if (err instanceof BookingConflictError) {
