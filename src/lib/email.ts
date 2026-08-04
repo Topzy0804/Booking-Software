@@ -70,7 +70,7 @@ export async function sendBookingReminderEmail(params: BookingEmailParams): Prom
   const labels = deriveLabels(params);
 
   try {
-    await resend.emails.send({
+    const { data, error } = await resend.emails.send({
       from: FROM_ADDRESS,
       to: params.to,
       subject: `Reminder: Your appointment with ${params.tenantName} is coming up`,
@@ -83,6 +83,12 @@ export async function sendBookingReminderEmail(params: BookingEmailParams): Prom
         subtext: `Hi ${escapeHtml(params.clientName)}, this is a reminder that your appointment with ${escapeHtml(params.tenantName)} is coming up.`,
       }),
     });
+
+    if (error || !data?.id) {
+      console.error("[email] Error sending reminder email for", params.to, error);
+      return false;
+    }
+
     return true;
   }
   catch (error) {

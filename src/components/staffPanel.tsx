@@ -139,7 +139,7 @@ export default function StaffPanel({
   }
 
   async function handleDeactivate(r: ResourceWithDetails) {
-    if (!confirm(`remove ${r.name} from staff? they won't be able to receive bookings anymore.`)) return;
+    if (!confirm(`remove ${r.name} from staff? they won\'t be able to receive bookings anymore.`)) return;
     const res = await fetch(`/api/resources/${r.id}`, { 
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
@@ -160,7 +160,7 @@ export default function StaffPanel({
            <div>
              <h2 className="font-display text-2xl font-semibold text-ink">Staff</h2>
              <p className="mt-1 text-[13px] text-ink-soft">
-               Who clients can book, and when they're available.
+               Who clients can book, and when they are available.
              </p>
            </div>
            {!showForm && (

@@ -45,7 +45,7 @@ const upcoming = bookings.filter(
   return { upcoming, thisWeek, noShows };
 }
 
-function startOfWeek(d: Date): Date {
+export function startOfWeek(d: Date): Date {
   const copy = new Date(d);
   copy.setHours(0, 0, 0, 0);
   copy.setDate(copy.getDate() - copy.getDay());

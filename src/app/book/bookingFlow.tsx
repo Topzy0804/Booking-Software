@@ -13,16 +13,18 @@ import { ConfirmationStub } from '@/components/book/confirmationtub';
 export default function BookingFlow({
   tenantName,
   services,
+  timezone,
 }: {
   tenantName: string;
   services: Service[];
+  timezone: string;
 }) {
   const [step, setStep] = useState<Step>(1);
   const [selectedService, setSelectedService] = useState<Service | null>(
     services.length > 0 ? services[0] : null
   );
 
-  const days = useMemo(() => buildNextDays(14), []);
+  const days = useMemo(() => buildNextDays(14, timezone), [timezone]);
   const [selectedDay, setSelectedDay] = useState(days[0]);
 
   // Staff preference: "any" keeps the fair auto-assign/shuffle
@@ -62,18 +64,15 @@ export default function BookingFlow({
     [allStaff, selectedService]
   );
 
-  // Reset the chosen staff member whenever the service changes -- the
-  // previous pick might not perform the new service.
-  useEffect(() => {
-    setChosenStaffId(qualifiedStaff[0]?.id ?? '');
-  }, [qualifiedStaff]);
+  // Keep a valid default without copying derived staff data into state.
+  const effectiveStaffId = qualifiedStaff.some((staff) => staff.id === chosenStaffId)
+    ? chosenStaffId
+    : (qualifiedStaff[0]?.id ?? '');
+
+  const displayedSlots = preference === 'specific' && !effectiveStaffId ? [] : slots;
 
   useEffect(() => {
     if (step !== 2 || !selectedService) return;
-    if (preference === 'specific' && !chosenStaffId) {
-      setSlots([]);
-      return;
-    }
     const service = selectedService;
     let cancelled = false;
     async function loadSlots() {
@@ -89,7 +88,7 @@ export default function BookingFlow({
         const availability = data.availability ?? [];
         setSlots(
           preference === 'specific'
-            ? buildSlotsForResource(availability, chosenStaffId)
+            ? buildSlotsForResource(availability, effectiveStaffId)
             : mergeSlots(availability)
         );
       } catch {
@@ -106,7 +105,7 @@ export default function BookingFlow({
     return () => {
       cancelled = true;
     };
-  }, [step, selectedService, selectedDay, preference, chosenStaffId]);
+  }, [step, selectedService, selectedDay, preference, effectiveStaffId]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -208,9 +207,9 @@ export default function BookingFlow({
             preference={preference}
             onPreferenceChange={setPreference}
             qualifiedStaff={qualifiedStaff}
-            chosenStaffId={chosenStaffId}
+            chosenStaffId={effectiveStaffId}
             onChooseStaff={setChosenStaffId}
-            slots={slots}
+            slots={displayedSlots}
             loading={loadingSlots}
             selectedSlot={selectedSlot}
             onSelectSlot={setSelectedSlot}

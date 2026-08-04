@@ -1,23 +1,61 @@
 import { db } from "@/db/client";
 import { workingHours, availabilityExceptions, bookings } from "@/db/schema";
 import { and, eq, gte, lte, ne } from "drizzle-orm";
+import { toZonedTime, fromZonedTime } from "date-fns-tz";
 
 export type Slot = { start: Date; end: Date };
 
+/**
+ * Computes bookable start-time slots for a given resource on a given
+ * CALENDAR day in the TENANT'S OWN TIMEZONE -- not UTC, and not the
+ * server's or client's local timezone.
+ *
+ * Why this matters concretely: a staff member's working hours are
+ * entered as "09:00" in the dashboard, meaning 9am *where the
+ * business is*. Storage is UTC throughout (Postgres timestamptz,
+ * unchanged) -- timezone only matters at this boundary, converting
+ * between "wall-clock time in Lagos" and "the correct UTC instant".
+ * Getting this wrong doesn't crash anything; it just silently shows
+ * the wrong times, which is worse.
+ *
+ * Order of operations (each layer narrows the previous one):
+ *  1. Start from the resource's recurring working hours for that
+ *     weekday, AS OBSERVED IN THE TENANT'S TIMEZONE (a date that's
+ *     "Tuesday" in Lagos might already be "Wednesday" in UTC near
+ *     midnight -- getUTCDay() would silently pick the wrong day).
+ *  2. Subtract one-off exceptions (time off / holidays) that overlap
+ *     the day.
+ *  3. Subtract existing confirmed bookings (+ the service's
+ *     buffer-after).
+ *  4. Slice what's left into slots at the service's duration,
+ *     stepping every 15 minutes.
+ */
 export async function getAvailableSlots(params: {
   resourceId: string;
-  day: Date; 
+  day: Date; // any instant on the target calendar day
   durationMinutes: number;
   bufferAfterMinutes: number;
+  timezone: string; // IANA name, e.g. "Africa/Lagos" -- from tenants.timezone
   excludeBookingId?: string;
 }): Promise<Slot[]> {
-  const { resourceId, day, durationMinutes, bufferAfterMinutes, excludeBookingId } = params;
+  const { resourceId, day, durationMinutes, bufferAfterMinutes, timezone, excludeBookingId } =
+    params;
 
-  const dayStart = new Date(
-    Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate())
-  );
-  const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
-  const dayOfWeek = dayStart.getUTCDay();
+  // toZonedTime shifts the instant so that reading it back with plain
+  // JS getters (getFullYear/getMonth/getDate/getDay) yields the wall-
+  // clock values AS OBSERVED IN `timezone` -- this is what makes
+  // "which weekday is this, in Lagos" answerable without a timezone-
+  // aware getDay() call existing anywhere in the standard library.
+  const zonedDay = toZonedTime(day, timezone);
+  const year = zonedDay.getFullYear();
+  const month = zonedDay.getMonth();
+  const date = zonedDay.getDate();
+  const dayOfWeek = zonedDay.getDay(); // 0 = Sunday, in the TENANT's calendar
+
+  // The actual UTC instants marking the start/end of this calendar
+  // day AS OBSERVED IN THE TENANT'S TIMEZONE -- not midnight UTC.
+  const dayStart = fromZonedTime(new Date(year, month, date, 0, 0, 0), timezone);
+  const dayEnd = fromZonedTime(new Date(year, month, date + 1, 0, 0, 0), timezone);
 
   // 1. Recurring working hours for this weekday
   const hours = await db
@@ -30,8 +68,8 @@ export async function getAvailableSlots(params: {
   if (hours.length === 0) return [];
 
   let candidateIntervals: Slot[] = hours.map((h) => ({
-    start: timeOnDay(dayStart, h.startTime),
-    end: timeOnDay(dayStart, h.endTime),
+    start: timeOnDay(year, month, date, h.startTime, timezone),
+    end: timeOnDay(year, month, date, h.endTime, timezone),
   }));
 
   // 2. Subtract one-off exceptions overlapping this day
@@ -48,8 +86,8 @@ export async function getAvailableSlots(params: {
 
   for (const ex of exceptions) {
     candidateIntervals = subtractInterval(candidateIntervals, {
-      start: new Date(ex.startsAt),
-      end: new Date(ex.endsAt),
+      start: ex.startsAt,
+      end: ex.endsAt,
     });
   }
 
@@ -68,9 +106,11 @@ export async function getAvailableSlots(params: {
     );
 
   for (const b of existing) {
-    const bufferedEnd = new Date(new Date(b.endsAt).getTime() + bufferAfterMinutes * 60000);
+    // Duration arithmetic (adding minutes) is timezone-agnostic --
+    // only wall-clock instants need conversion, not elapsed time.
+    const bufferedEnd = new Date(b.endsAt.getTime() + bufferAfterMinutes * 60000);
     candidateIntervals = subtractInterval(candidateIntervals, {
-      start: new Date(b.startsAt),
+      start: b.startsAt,
       end: bufferedEnd,
     });
   }
@@ -92,11 +132,13 @@ export async function getAvailableSlots(params: {
   return slots;
 }
 
-function timeOnDay(day: Date, hhmm: string): Date {
+// Converts "09:00" wall-clock on a given tenant-local calendar date
+// into the correct UTC instant. This is the fix for the bug where a
+// Lagos business's "9am" was previously being stored/compared as 9am
+// UTC (i.e. 10am Lagos time) regardless of the tenant's real timezone.
+function timeOnDay(year: number, month: number, date: number, hhmm: string, timezone: string): Date {
   const [h, m] = hhmm.split(":").map(Number);
-  return new Date(
-    Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), h, m)
-  );
+  return fromZonedTime(new Date(year, month, date, h, m, 0), timezone);
 }
 
 // Subtracts `cut` from every interval in `intervals`, splitting an
@@ -105,7 +147,6 @@ function subtractInterval(intervals: Slot[], cut: Slot): Slot[] {
   const result: Slot[] = [];
   for (const iv of intervals) {
     if (cut.end <= iv.start || cut.start >= iv.end) {
-      // No overlap
       result.push(iv);
       continue;
     }

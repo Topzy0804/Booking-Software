@@ -19,11 +19,11 @@ export default function Services({ initialServices }: { initialServices: Service
   const [submitting, setSubmitting] = useState(false);
   const [removingServiceId, setRemovingServiceId] = useState<string | null>(null)
 
-  function openAddForm() {
-    setEditingServiceId(null);
-    setForm(DEFAULT_FORM);
-    setShowForm(true);
-  }
+  // function openAddForm() {
+  //   setEditingServiceId(null);
+  //   setForm(DEFAULT_FORM);
+  //   setShowForm(true);
+  // }
 
   function openEditForm(s: Service) {
     setEditingServiceId(s.id);

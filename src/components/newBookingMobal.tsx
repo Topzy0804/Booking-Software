@@ -60,23 +60,25 @@ export default function NewBookingModal({
       return;
     }
     let cancelled = false;
-    setLoadingSlots(true);
-    setStartsAt(null);
-    fetch(`/api/availability?serviceId=${serviceId}&date=${date}`)
-      .then((res) => res.json())
-      .then((data) => {
+
+    async function loadSlots() {
+      try {
+        const response = await fetch(`/api/availability?serviceId=${serviceId}&date=${date}`);
+        const data = await response.json();
         if (cancelled) return;
         const forThisStaff = (data.availability ?? []).find(
           (r: { resourceId: string }) => r.resourceId === resourceId
         );
         setSlots(forThisStaff?.slots ?? []);
-      })
-      .catch(() => {
+      } catch {
         if (!cancelled) toast.error('could not load availability');
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) setLoadingSlots(false);
-      });
+      }
+    }
+
+    void loadSlots();
+
     return () => {
       cancelled = true;
     };
@@ -148,6 +150,7 @@ export default function NewBookingModal({
                 value={serviceId}
                 onChange={(e) => {
                   const nextServiceId = e.target.value;
+                  setLoadingSlots(true);
                   setServiceId(nextServiceId);
                   setStartsAt(null);
                   const nextQualifiedStaff = allStaff.filter((r) => r.serviceIds.includes(nextServiceId));
@@ -172,7 +175,11 @@ export default function NewBookingModal({
                 <select
                   className="input"
                   value={resourceId}
-                  onChange={(e) => setResourceId(e.target.value)}
+                  onChange={(e) => {
+                    setLoadingSlots(true);
+                    setStartsAt(null);
+                    setResourceId(e.target.value);
+                  }}
                 >
                   {handleQualifiedStaff.map((s) => (
                     <option key={s.id} value={s.id}>
@@ -190,7 +197,11 @@ export default function NewBookingModal({
                 className="input"
                 value={date}
                 min={toDateParam(new Date())}
-                onChange={(e) => setDate(e.target.value)}
+                onChange={(e) => {
+                  setLoadingSlots(true);
+                  setStartsAt(null);
+                  setDate(e.target.value);
+                }}
               />
             </label>
 

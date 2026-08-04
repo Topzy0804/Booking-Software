@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import type { Booking, BookingStatus } from '@/types/dashboard';
+import { startOfWeek } from './analyticStrip';
 
 const STATUS_CLASS: Record<BookingStatus, string> = {
   confirmed: 'bg-[#E1E9E2] text-moss-dark border-l-moss',
@@ -42,12 +43,12 @@ export default function CalendarView({
     return copy;
   }
 
-  function startOfWeek(d: Date) {
-    const copy = startOfDay(d);
-    const day = copy.getDay();
-    copy.setDate(copy.getDate() - day);
-    return copy;
-  }
+  // function startOfWeek(d: Date) {
+  //   const copy = startOfDay(d);
+  //   const day = copy.getDay();
+  //   copy.setDate(copy.getDate() - day);
+  //   return copy;
+  // }
 
   function addDays(d: Date, n: number): Date {
     const copy = new Date(d);

@@ -19,5 +19,5 @@ export default async function BookPage() {
     .from(services)
     .where(and(eq(services.tenantId, tenant.id), eq(services.isActive, true)));
 
-  return <BookingFlow tenantName={tenant.name} services={activeServices} />;
+  return <BookingFlow tenantName={tenant.name} services={activeServices} timezone={tenant.timezone} />;
 }

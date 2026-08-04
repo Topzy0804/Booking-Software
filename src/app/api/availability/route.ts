@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
     .innerJoin(resources, eq(resources.id, serviceResources.resourceId))
     .where(eq(serviceResources.serviceId, serviceId));
 
-  const day = new Date(`${dateParam}T00:00:00.000Z`);
+  const day = new Date(`${dateParam}T12:00:00.000Z`);
 
   const results = await Promise.all(
     linkedResources.map(async (r) => ({
@@ -39,6 +39,7 @@ export async function GET(req: NextRequest) {
         day,
         durationMinutes: service.durationMinutes,
         bufferAfterMinutes: service.bufferAfterMinutes,
+        timezone: tenant.timezone,
         excludeBookingId,
       }),
     }))

@@ -75,7 +75,7 @@ export default function LoginForm() {
         </code>{" "}
         (whatever port your terminal shows).
       </p>
-      <p className='text-xs text-moss'>Don't have an account? <a href="/signup" className="text-moss text-xs hover:underline">Sign up</a></p>
+      <p className='text-xs text-moss'>Don&apos;t have an account? <a href="/signup" className="text-moss text-xs hover:underline">Sign up</a></p>
     </form>
   );
 }

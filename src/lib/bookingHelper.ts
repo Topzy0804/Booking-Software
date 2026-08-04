@@ -1,9 +1,11 @@
 import type { MergedSlot } from '@/types/book';
+import { toZonedTime } from 'date-fns-tz';
 
-export function buildNextDays(count: number): Date[] {
+export function buildNextDays(count: number, timezone: string): Date[] {
   const out: Date[] = [];
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const nowInTenantTz = toZonedTime(new Date(), timezone);
+  const today = new Date(nowInTenantTz.getFullYear(),
+    nowInTenantTz.getMonth(), nowInTenantTz.getDate());
   for (let i = 0; i < count; i++) {
     out.push(new Date(today.getTime() + i * 86400000));
   }

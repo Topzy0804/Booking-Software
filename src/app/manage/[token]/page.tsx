@@ -51,24 +51,28 @@ export default function ManageBookingPage() {
 
   useEffect(() => {
     if (mode !== "reschedule" || !booking) return;
+    const bookingToReschedule = booking;
     let cancelled = false;
-    setLoadingSlots(true);
-    fetch(
-      `/api/availability?serviceId=${booking.serviceId}&date=${date}&excludeBookingId=${booking.id}`
-    )
-    .then((res) => res.json())
-    .then((data) => {
-      if (cancelled) return;
-      const forThisStaff = (data.availability ?? []).find(
-        (r: { resourceId: string }) => r.resourceId === booking.resourceId
-      );
-      setSlots(forThisStaff?.slots ?? []);
-    })
-    .finally(() => {
-      if (!cancelled) {
-        setLoadingSlots(false);
+
+    async function loadSlots() {
+      try {
+        const response = await fetch(
+          `/api/availability?serviceId=${bookingToReschedule.serviceId}&date=${date}&excludeBookingId=${bookingToReschedule.id}`
+        );
+        const data = await response.json();
+        if (cancelled) return;
+
+        const forThisStaff = (data.availability ?? []).find(
+          (r: { resourceId: string }) => r.resourceId === bookingToReschedule.resourceId
+        );
+        setSlots(forThisStaff?.slots ?? []);
+      } finally {
+        if (!cancelled) setLoadingSlots(false);
       }
-    });
+    }
+
+    void loadSlots();
+
     return () => {
       cancelled = true;
     };
@@ -166,7 +170,10 @@ export default function ManageBookingPage() {
             {canModify ? (
               <div className="mt-5 flex gap-3">
                 <button
-                  onClick={() => setMode("reschedule")}
+                  onClick={() => {
+                    setLoadingSlots(true);
+                    setMode("reschedule");
+                  }}
                   className="flex-1 rounded-md border border-stone px-4 py-2.5 text-sm font-semibold text-ink hover:bg-stone-soft"
                 >
                   Reschedule
@@ -201,7 +208,10 @@ export default function ManageBookingPage() {
                 className="input"
                 value={date}
                 min={toDateParam(new Date())}
-                onChange={(e) => setDate(e.target.value)}
+                onChange={(e) => {
+                  setLoadingSlots(true);
+                  setDate(e.target.value);
+                }}
               />
             </label>
 
@@ -256,4 +266,4 @@ function toDateParam(d: Date): string {
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
-} 
+}
