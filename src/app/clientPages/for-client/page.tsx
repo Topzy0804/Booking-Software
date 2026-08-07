@@ -139,14 +139,14 @@ function FindBusiness() {
 
   return (
     <section className="mt-24 w-full max-w-md">
-      <p className="font-mono text-xs font-medium uppercase tracking-wide text-moss">
+      {/* <p className="font-mono text-xs font-medium uppercase tracking-wide text-moss">
         Know the business, not the link?
       </p>
       <h2 className="mt-3 font-display text-xl font-semibold text-ink">
-        Find their booking page
-      </h2>
+        Find their booking page */}
+      {/* </h2> */}
 
-      <form
+      {/* <form
         onSubmit={handleSearchBusinessName}
         className="mt-6 rounded-lg border border-stone bg-paper-raised p-5 text-left shadow-sm"
       >
@@ -178,7 +178,7 @@ function FindBusiness() {
         >
           {checking ? "Checking…" : "Go to booking page"}
         </button>
-      </form>
+      </form> */}
     </section>
   );
 }
