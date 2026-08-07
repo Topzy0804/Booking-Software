@@ -42,6 +42,7 @@ export default function StaffPanel({
   const [loadingEditingId, setLoadingEditingId] = useState<string | null>(null);
 
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
   const [days, setDays] = useState<number[]>([1, 2, 3, 4, 5]);
   const [startTime, setStartTime] = useState("09:00");
@@ -116,6 +117,7 @@ export default function StaffPanel({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name,
+          email,
           serviceIds: selectedServiceIds,
           workingHours: { startTime, endTime, days },
         }),
@@ -188,6 +190,18 @@ export default function StaffPanel({
                  onChange={(e) => setName(e.target.value)}
                />
              </label>
+
+             <label className="block max-w-sm">
+              <span className="text-[12px] font-semibold text-ink">Email</span>
+  <input
+    required={!editingId}
+    disabled={!!editingId}
+    type="email"
+    className="input"
+    value={email}
+    onChange={(e) => setEmail(e.target.value)}
+  />
+</label>
    
              {services.length > 0 && (
                <div>

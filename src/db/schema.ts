@@ -56,7 +56,9 @@ export const memberships = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     role: text("role", { enum: ["owner", "staff"] }).notNull(),
+    canViewAllBookings: boolean("can_view_all_bookings").notNull().default(false),
     ...timestamps,
+    
   },
   (t) => [
     uniqueIndex("memberships_tenant_user_idx").on(t.tenantId, t.userId),
@@ -73,6 +75,10 @@ export const resources = pgTable(
       .references(() => tenants.id, { onDelete: "cascade" }),
     linkedUserId: uuid("linked_user_id").references(() => users.id),
     name: text("name").notNull(),
+    email: text("email"),
+    title: text("title"),
+    bio: text("bio"),
+    phone: text("phone"),
     isActive: boolean("is_active").notNull().default(true),
     ...timestamps,
   },

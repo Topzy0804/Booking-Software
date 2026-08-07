@@ -5,6 +5,8 @@ import { eq } from "drizzle-orm";
 import { requireTenantSession } from "@/lib/requireAuth";
 import { getCurrentTenants } from "@/lib/tenant";
 import { z } from "zod";
+import { createStaffInviteToken, buildStaffInviteUrl } from "@/lib/staffInvitationToken";
+import { sendStaffInviteEmail } from "@/lib/email";
 
 export async function GET() {
   const tenant = await getCurrentTenants();
@@ -42,6 +44,7 @@ export async function GET() {
 
 const schema = z.object({
   name: z.string().min(1),
+  email: z.string().email(),
   serviceIds: z.array(z.string()).default([]),
   // Simple default: same hours every weekday. Per-day customization is a v2 dashboard feature.
   workingHours: z
@@ -57,11 +60,11 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
   }
-  const { name, serviceIds, workingHours: hours } = parsed.data;
+  const { name, email, serviceIds, workingHours: hours } = parsed.data;
 
   const [resource] = await db
     .insert(resources)
-    .values({ tenantId: auth.tenant.id, name })
+    .values({ tenantId: auth.tenant.id, name, email })
     .returning();
 
   if (hours.days.length > 0) {
@@ -90,6 +93,14 @@ export async function POST(req: NextRequest) {
     .from(serviceResources)
     .where(eq(serviceResources.resourceId, resource.id));
 
+    const inviteUrl = buildStaffInviteUrl(auth.tenant.subdomain, createStaffInviteToken(resource.id));
+await sendStaffInviteEmail({
+  to: email,
+  staffName: name,
+  tenantName: auth.tenant.name,
+  inviteUrl,
+});
+
   return NextResponse.json({
     resource: {
       ...resource,
@@ -102,3 +113,4 @@ export async function POST(req: NextRequest) {
     },
   });
 }
+
