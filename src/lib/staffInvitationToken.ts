@@ -19,6 +19,7 @@ export function verifyStaffInviteToken(token: string): string | null {
   }
 }
 
+
 export function buildStaffInviteUrl(subdomain: string, token: string): string {
   const rootDomain = process.env.ROOT_DOMAIN || 'modabyz.me';
   return `https://${subdomain}.${rootDomain}/staffInvite/${token}`;

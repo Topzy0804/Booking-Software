@@ -3,7 +3,7 @@ import { formatPrice } from '@/lib/currency';
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
-const FROM_ADDRESS = process.env.EMAIL_FROM || "Booking MVP <onboarding@resend.dev>";
+const FROM_ADDRESS = process.env.EMAIL_FROM || "Moda by Z <bookings@mail.modabyz.me>";
 
 
 type BookingEmailParams = {
