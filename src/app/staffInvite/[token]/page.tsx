@@ -17,7 +17,7 @@ export default function StaffInvitePage() {
     setError(null);
     setSubmitting(true);
     try {
-      const res = await fetch(`/api/staff-invite/${token}/accept`, {
+      const res = await fetch(`/api/staffInvite/${token}/accept`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password }),
