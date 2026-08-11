@@ -33,9 +33,11 @@ export function capitalizeName(name: string) {
 export default function BookingsPanel({
   initialBookings,
   services,
+  canCreateBookings,
 }: {
   initialBookings: Booking[];
   services: Service[];
+  canCreateBookings: boolean;
   // Accepted for prop-shape consistency with what the page fetches,
   // though NewBookingModal fetches its own richer copy (with
   // serviceIds attached) via GET /api/resources rather than using this.
@@ -99,12 +101,14 @@ export default function BookingsPanel({
               </button>
             ))}
           </div>
+          {canCreateBookings && (
           <button
             onClick={() => setShowNewBooking(true)}
             className="rounded-md bg-moss px-3.5 py-2 text-[13px] font-semibold text-white hover:bg-moss-dark"
           >
             + New booking
           </button>
+          )}
         </div>
       </div>
 

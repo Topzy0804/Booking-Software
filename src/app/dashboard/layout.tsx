@@ -8,7 +8,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="flex flex-1">
-      <Sidebar tenantName={auth.tenant.name} subdomain={auth.tenant.subdomain} />
+      <Sidebar 
+      tenantName={auth.tenant.name} 
+      subdomain={auth.tenant.subdomain}
+      role={auth.session.role}
+       />
       <div className="flex-1 px-6 py-8 pb-20 sm:px-10 md:pb-8">{children}</div>
     </div>
   );

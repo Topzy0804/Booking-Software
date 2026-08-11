@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
-const NAV_ITEMS = [
+const OWNER_NAV = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/dashboard/book", label: "Bookings" },
   { href: "/dashboard/service", label: "Services" },
@@ -13,14 +13,23 @@ const NAV_ITEMS = [
   { href: "/dashboard/settings", label: "Settings" },
 ];
 
+const STAFF_NAV = [
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/dashboard/book", label: "Bookings" },
+  { href: "/dashboard/profile", label: "My Profile" },
+];
+
 export default function Sidebar({
   tenantName,
   subdomain,
+  role,
 }: {
   tenantName: string;
   subdomain: string;
+  role: 'owner' | 'staff';
 }) {
   const pathname = usePathname();
+  const navItems = role === 'owner' ? OWNER_NAV : STAFF_NAV;
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -39,7 +48,7 @@ export default function Sidebar({
         </div>
 
         <div className="flex flex-1 flex-col">
-          {NAV_ITEMS.map((item) => {
+          {navItems.map((item) => {
             const active =
               item.href === "/dashboard"
                 ? pathname === "/dashboard"
@@ -72,7 +81,7 @@ export default function Sidebar({
 
       {/* Mobile bottom bar -- front-desk-on-a-phone use case */}
       <div className="fixed bottom-0 left-0 right-0 z-10 flex border-t border-stone bg-paper-raised md:hidden">
-        {NAV_ITEMS.map((item) => {
+        {navItems.map((item) => {
           const active =
             item.href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(item.href);
           return (
