@@ -25,6 +25,11 @@ export const metadata: Metadata = {
   title: "Booking MVP",
   description: "Multi-tenant booking platform",
   other: { "color-scheme": "light" },
+  icons: {
+    icon: "/booking-logo.png",
+    shortcut: "/booking-logo.png",
+    apple: "/booking-logo.png",
+  }
 };
 
 

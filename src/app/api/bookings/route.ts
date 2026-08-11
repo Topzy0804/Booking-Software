@@ -8,6 +8,7 @@ import { createBooking, BookingConflictError } from "@/lib/booking";
 import { sendBookingConfirmationEmail } from "@/lib/email";
 import { z } from "zod";
 import { createBookingManageToken, buildManageUrl } from '@/lib/bookingToken';
+import { getSession } from '@/lib/auth';
 
 // Staff-facing: list this tenant's bookings, newest first.
 export async function GET() {
@@ -53,11 +54,21 @@ export async function POST(req: NextRequest) {
   const tenant = await getCurrentTenants();
   if (!tenant) return NextResponse.json({ error: "Unknown business" }, { status: 404 });
 
+  const session = await getSession();
+  if (session && session.tenantId === tenant.id && session.role === 'staff') {
+    return NextResponse.json(
+      { error: 'Staff can not create bookings manually - ask the business owner.' },
+      { status: 403 }
+    );
+  }
+
   const parsed = schema.safeParse(await req.json());
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
   }
   const { serviceId, resourceId, startsAt, client } = parsed.data;
+
+
 
   const [service] = await db
     .select()

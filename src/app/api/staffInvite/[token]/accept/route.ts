@@ -17,6 +17,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ tok
     return NextResponse.json({ error: "This invite link is invalid or has expired." }, { status: 401 });
   }
 
+
   const [resource] = await db.select().from(resources).where(eq(resources.id, resourceId));
   if (!resource) {
     return NextResponse.json({ error: "Staff record not found." }, { status: 404 });

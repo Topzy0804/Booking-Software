@@ -49,6 +49,8 @@ export default function StaffPanel({
   const [endTime, setEndTime] = useState("17:00");
   const [submitting, setSubmitting] = useState(false);
 
+  const [canViewAllBookings, setCanViewAllBookings] = useState(false);
+
   function toggleDay(d: number) {
     setDays((cur) => (cur.includes(d) ? cur.filter((x) => x !== d) : [...cur, d]));
   }
@@ -201,6 +203,14 @@ export default function StaffPanel({
     value={email}
     onChange={(e) => setEmail(e.target.value)}
   />
+</label>
+<label className="flex items-center gap-2">
+  <input
+    type="checkbox"
+    checked={canViewAllBookings}
+    onChange={(e) => setCanViewAllBookings(e.target.checked)}
+  />
+  <span className="text-[12px] font-semibold text-ink">Can see every staff booking</span>
 </label>
    
              {services.length > 0 && (

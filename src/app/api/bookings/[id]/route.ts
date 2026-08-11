@@ -6,6 +6,7 @@ import { requireTenantSession } from "@/lib/requireAuth";
 import { rescheduleBooking, BookingConflictError } from "@/lib/booking";
 import { z } from "zod";
 import { sendBookingCancellationEmail } from "@/lib/email";
+import { getStaffScope } from "@/lib/staffScope";
 
 
 const schema = z.object({
@@ -31,6 +32,13 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     .from(bookings)
     .where(and(eq(bookings.id, id), eq(bookings.tenantId, auth.tenant.id)));
   if (!existing) return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+
+  if (auth.session.role === 'staff') {
+    const { myResourceId } = await getStaffScope(auth.session.userId, auth.tenant.id, auth.session.role);
+    if (existing.resourceId !== myResourceId) {
+      return NextResponse.json({ error: 'You can only manage your own bookings' }, { status: 403 });
+    }
+  }
 
 
 

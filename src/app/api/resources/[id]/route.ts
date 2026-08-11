@@ -4,6 +4,7 @@ import { resources, workingHours, serviceResources } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
 import { requireTenantSession } from "@/lib/requireAuth";
 import { z } from "zod";
+import { memberships } from "@/db/schema";
 
 
 function buildResourceDetails(
@@ -25,6 +26,7 @@ function buildResourceDetails(
 const schema = z.object({
   name: z.string().min(1).optional(),
   serviceIds: z.array(z.string()).optional(),
+  canViewAllBookings: z.boolean().optional(),
 
   workingHours: z
     .object({ startTime: z.string(), endTime: z.string(), days: z.array(z.number().min(0).max(6)) })
@@ -46,6 +48,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return NextResponse.json({ error: "Staff member not found" }, { status: 404 });
   }
 
+
   const parsed = schema.safeParse(await req.json());
   if (!parsed.success) {
     return NextResponse.json({ error: parsed.error.issues[0].message }, { status: 400 });
@@ -60,6 +63,19 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         ...(isActive !== undefined ? { isActive } : {}),
       })
       .where(eq(resources.id, id));
+  }
+
+  if (parsed.data.canViewAllBookings !== undefined) {
+    if (!existing.linkedUserId) {
+      return NextResponse.json(
+        { error: 'This staff member has not accepted their invite yet.' },
+        { status: 400 }
+      );
+    }
+    await db
+      .update(memberships)
+      .set({ canViewAllBookings: parsed.data.canViewAllBookings })
+      .where(and(eq(memberships.userId, existing.linkedUserId), eq(memberships.tenantId, auth.tenant.id)));
   }
 
   if (hours !== undefined) {
