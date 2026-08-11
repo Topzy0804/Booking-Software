@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import type { Booking, BookingStatus } from '@/types/dashboard';
 import { startOfWeek } from './analyticStrip';
+import { Button } from '@/components/ui/button';
 
 const STATUS_CLASS: Record<BookingStatus, string> = {
   confirmed: 'bg-[#E1E9E2] text-moss-dark border-l-moss',
@@ -79,26 +80,26 @@ export default function CalendarView({
     <div>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <button
+          <Button
             onClick={() => shift(-1)}
             className="rounded-md border border-stone px-2.5 py-1.5 text-ink-soft hover:bg-stone-soft"
             aria-label="Previous"
           >
             ←
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => shift(1)}
             className="rounded-md border border-stone px-2.5 py-1.5 text-ink-soft hover:bg-stone-soft"
             aria-label="Next"
           >
             →
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => setAnchor(startOfDay(new Date()))}
             className="rounded-md border border-stone px-3 py-1.5 text-[12px] font-medium text-ink hover:bg-stone-soft"
           >
             Today
-          </button>
+          </Button>
           <span className="ml-1 font-display text-sm font-semibold text-ink">
             {mode === "day"
               ? anchor.toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })
@@ -108,7 +109,7 @@ export default function CalendarView({
 
         <div className="flex rounded-md border border-stone p-0.5">
           {(["day", "week"] as CalendarMode[]).map((m) => (
-            <button
+            <Button
               key={m}
               onClick={() => setMode(m)}
               className={`rounded px-3 py-1 text-[12px] font-medium capitalize ${
@@ -116,7 +117,7 @@ export default function CalendarView({
               }`}
             >
               {m}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
@@ -159,27 +160,27 @@ export default function CalendarView({
                       <div className="truncate text-ink-soft">{b.serviceName}</div>
                       {b.status === "confirmed" && (
                         <div className="mt-1 flex gap-1.5">
-                          <button
+                          <Button
                             disabled={updatingId === b.id}
                             onClick={() => onUpdateStatus(b.id, "attended")}
                             className="text-[10px] font-medium text-moss hover:underline disabled:opacity-50"
                           >
                             Attended
-                          </button>
-                          <button
+                          </Button>
+                          <Button
                             disabled={updatingId === b.id}
                             onClick={() => onUpdateStatus(b.id, "no_show")}
                             className="text-[10px] font-medium text-ink-soft hover:underline disabled:opacity-50"
                           >
                             No-show
-                          </button>
-                          <button
+                          </Button>
+                          <Button
                             disabled={updatingId === b.id}
                             onClick={() => onUpdateStatus(b.id, "cancelled")}
                             className="text-[10px] font-medium text-rust hover:underline disabled:opacity-50"
                           >
                             Cancel
-                          </button>
+                          </Button>
                         </div>
                       )}
                     </div>

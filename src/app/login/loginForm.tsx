@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import PasswordInput from '@/components/passwordInput';
+import { Button } from '@/components/ui/button';
 
 export default function LoginForm() {
   const [form, setForm] = useState({ email: '', password: '' });
@@ -60,13 +61,13 @@ export default function LoginForm() {
         />
       </label>
 
-      <button
+      <Button
         type="submit"
         disabled={loading}
         className="w-full rounded-md bg-moss px-4 py-2.5 text-sm font-semibold text-white hover:bg-moss-dark disabled:opacity-50"
       >
         {loading ? "Signing in…" : "Sign in"}
-      </button>
+      </Button>
 
       <p className="text-xs text-ink-soft">
         Sign in from your business&rsquo;s own address, e.g.{" "}

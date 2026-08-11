@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { toast } from "sonner";
+import { Button } from '@/components/ui/button';
 
 type BookingDetails = {
   id: string;
@@ -169,7 +170,7 @@ export default function ManageBookingPage() {
           <>
             {canModify ? (
               <div className="mt-5 flex gap-3">
-                <button
+                <Button
                   onClick={() => {
                     setLoadingSlots(true);
                     setMode("reschedule");
@@ -177,14 +178,14 @@ export default function ManageBookingPage() {
                   className="flex-1 rounded-md border border-stone px-4 py-2.5 text-sm font-semibold text-ink hover:bg-stone-soft"
                 >
                   Reschedule
-                </button>
-                <button
+                </Button>
+                <Button
                   disabled={busy}
                   onClick={handleCancel}
                   className="flex-1 rounded-md bg-rust px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-50"
                 >
                   Cancel
-                </button>
+                </Button>
               </div>
             ) : booking.status === "confirmed" ? (
               <p className="mt-5 text-center text-xs text-ink-soft">
@@ -223,7 +224,7 @@ export default function ManageBookingPage() {
               ) : (
                 <div className="grid grid-cols-3 gap-1.5">
                   {slots.map((s) => (
-                    <button
+                    <Button
                       key={s.start}
                       disabled={busy}
                       onClick={() => handleReschedule(s.start)}
@@ -233,18 +234,18 @@ export default function ManageBookingPage() {
                         hour: "numeric",
                         minute: "2-digit",
                       })}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               )}
             </div>
 
-            <button
+            <Button
               onClick={() => setMode("view")}
               className="mt-4 w-full text-center text-xs text-ink-soft"
             >
               ← Back
-            </button>
+            </Button>
           </div>
         )}
       </div>

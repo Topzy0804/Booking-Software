@@ -1,5 +1,6 @@
 import { formatPrice } from '@/lib/currency';
 import type { Service } from '@/types/book';
+import { Button } from '@/components/ui/button';
 
 export function ServiceStep({
   services,
@@ -15,7 +16,7 @@ export function ServiceStep({
   return (
     <div>
       {services.map((s) => (
-        <button
+        <Button
           key={s.id}
           onClick={() => onSelect(s)}
           className={`mb-2.5 flex w-full items-center justify-between rounded-lg border bg-paper-raised px-4 py-3.5 text-left ${
@@ -29,14 +30,14 @@ export function ServiceStep({
           <div className="font-mono font-medium text-moss">
             {formatPrice(s.priceCents)}
           </div>
-        </button>
+        </Button>
       ))}
-      <button
+      <Button
         onClick={onNext}
         className="mt-2 w-full rounded-md bg-moss px-4 py-2.5 text-sm font-semibold text-white hover:bg-moss-dark"
       >
         Continue
-      </button>
+      </Button>
     </div>
   );
 }

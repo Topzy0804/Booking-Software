@@ -6,6 +6,7 @@ import { Booking, Service } from '@/types/dashboard';
 import { StaffOption } from '@/types/book';
 import { toDateParam } from '@/lib/bookingHelper';
 import { formatPrice } from '@/lib/currency';
+import { Button } from '@/components/ui/button';
 
 export default function NewBookingModal({
   services,
@@ -89,7 +90,7 @@ export default function NewBookingModal({
       if (!startsAt) return;
       setSubmit(true);
       try {
-        const res = await fetch('/api/bookings', {
+        const res = await fetch('/api/manualBookings', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({ serviceId, resourceId, startsAt, client }),
@@ -134,9 +135,9 @@ export default function NewBookingModal({
       <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-lg border border-stone bg-paper-raised p-6">
         <div className="mb-5 flex items-start justify-between">
           <h3 className="font-display text-lg font-semibold text-ink">New booking</h3>
-          <button onClick={onClose} className="text-ink-soft hover:text-ink" aria-label="Close">
+          <Button onClick={onClose} className="text-ink-soft hover:text-ink" aria-label="Close">
             ✕
-          </button>
+          </Button>
         </div>
 
         {services.length === 0 ? (
@@ -214,7 +215,7 @@ export default function NewBookingModal({
               ) : (
                 <div className="mt-1.5 grid grid-cols-4 gap-1.5">
                   {slots.map((s) => (
-                    <button
+                    <Button
                       type="button"
                       key={s.start}
                       onClick={() => setStartsAt(s.start)}
@@ -228,7 +229,7 @@ export default function NewBookingModal({
                         hour: "numeric",
                         minute: "2-digit",
                       })}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               )}
@@ -265,20 +266,20 @@ export default function NewBookingModal({
             </div>
 
             <div className="flex gap-2 pt-1">
-              <button
+              <Button
                 type="submit"
                 disabled={submit || !startsAt}
                 className="rounded-md bg-moss px-4 py-2 text-[13px] font-semibold text-white hover:bg-moss-dark disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {submit ? "Creating…" : "Create booking"}
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
                 onClick={onClose}
                 className="rounded-md px-4 py-2 text-[13px] font-medium text-ink-soft hover:bg-stone-soft"
               >
                 Cancel
-              </button>
+              </Button>
             </div>
           </form>
         )}

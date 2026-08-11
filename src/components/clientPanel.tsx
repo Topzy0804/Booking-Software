@@ -4,6 +4,7 @@ import { useState } from "react";
 import EmptyState from "./emptyState";
 import type { Client } from "@/types/dashboard";
 import { capitalizeName } from "./bookingPanel";
+import { Button } from '@/components/ui/button';
 
 const PAGE_SIZE = 10;
 
@@ -77,20 +78,20 @@ export default function ClientsPanel({ clients }: { clients: Client[] }) {
                 Page {safePage} of {totalPages}
               </p>
               <div className="flex gap-2">
-                <button
+                <Button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={safePage === 1}
                   className="rounded-md border border-stone px-3 py-1.5 text-[12px] font-medium text-ink hover:bg-stone-soft disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Previous
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={safePage === totalPages}
                   className="rounded-md border border-stone px-3 py-1.5 text-[12px] font-medium text-ink hover:bg-stone-soft disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Next
-                </button>
+                </Button>
               </div>
             </div>
           )}

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import PasswordInput from "@/components/passwordInput";
+import { Button } from '@/components/ui/button';
 
 export default function SignupPage() {
   const [form, setForm] = useState({
@@ -123,13 +124,13 @@ export default function SignupPage() {
             />
           </Field>
 
-          <button
+          <Button
             type="submit"
             disabled={loading}
             className="w-full rounded-md bg-moss px-4 py-2.5 text-sm font-semibold text-white hover:bg-moss-dark disabled:opacity-50"
           >
             {loading ? "Creating…" : "Create business"}
-          </button>
+          </Button>
           <div className='text-xs text-moss'>
             <p>Already have an account? <a href="/login" className="text-moss text-xs hover:underline">Sign in</a></p>
           </div>

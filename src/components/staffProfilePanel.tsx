@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 
 type Service = {
   id: string;
@@ -9,7 +10,7 @@ type Service = {
   durationMinutes: number;
 };
 
-const WEEKDAY_LABEL = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const WEEKDAY_LABEL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 export default function StaffProfilePanel({
   resource,
@@ -77,13 +78,13 @@ export default function StaffProfilePanel({
           </p>
         </div>
 
-        <button
+        <Button
           type="button"
           onClick={() => setIsEditOpen(true)}
           className="shrink-0 rounded-md bg-moss px-4 py-2 text-[13px] font-semibold text-white hover:bg-moss-dark"
         >
           Edit profile
-        </button>
+        </Button>
       </div>
 
       <div className="mb-5 rounded-lg border border-stone bg-paper-raised p-6">
@@ -207,7 +208,7 @@ export default function StaffProfilePanel({
                 </p>
               </div>
 
-              <button
+              <Button
                 type="button"
                 onClick={() => setIsEditOpen(false)}
                 disabled={submitting}
@@ -215,7 +216,7 @@ export default function StaffProfilePanel({
                 className="rounded-md px-2 py-1 text-lg text-ink-soft hover:bg-stone/30 hover:text-ink disabled:opacity-50"
               >
                 ×
-              </button>
+              </Button>
             </div>
 
             <form onSubmit={handleSave} className="flex min-h-0 flex-1 flex-col">
@@ -266,7 +267,7 @@ export default function StaffProfilePanel({
                       const selected = serviceIds.includes(service.id);
 
                       return (
-                        <button
+                        <Button
                           type="button"
                           key={service.id}
                           onClick={() => toggleService(service.id)}
@@ -279,7 +280,7 @@ export default function StaffProfilePanel({
                         >
                           {selected ? '✓ ' : ''}
                           {service.name}
-                        </button>
+                        </Button>
                       );
                     })}
                   </div>
@@ -287,22 +288,22 @@ export default function StaffProfilePanel({
               </div>
 
               <div className="flex shrink-0 justify-end gap-2 border-t border-stone px-5 py-4">
-                <button
+                <Button
                   type="button"
                   onClick={() => setIsEditOpen(false)}
                   disabled={submitting}
                   className="rounded-md border border-stone px-4 py-2 text-[13px] font-semibold text-ink-soft hover:bg-stone/20 disabled:opacity-50"
                 >
                   Cancel
-                </button>
+                </Button>
 
-                <button
+                <Button
                   type="submit"
                   disabled={submitting}
                   className="rounded-md bg-moss px-4 py-2 text-[13px] font-semibold text-white hover:bg-moss-dark disabled:opacity-50"
                 >
                   {submitting ? 'Saving…' : 'Save changes'}
-                </button>
+                </Button>
               </div>
             </form>
           </div>

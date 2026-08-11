@@ -96,12 +96,12 @@ export default function Sidebar({
             </Link>
           );
         })}
-        <button
+        <Button
           onClick={handleLogout}
           className="flex-1 py-3 text-center text-xs font-medium text-ink-soft"
         >
           Log out
-        </button>
+        </Button>
       </div>
     </>
   );

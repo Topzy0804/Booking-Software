@@ -7,6 +7,7 @@ import NewBookingModal from "@/components/newBookingMobal";
 import CalendarView from "@/components/calenderView";
 import AnalyticsStrip from "@/components/analyticStrip";
 import type { Booking, BookingStatus, Service, Resource } from "@/types/dashboard";
+import { Button } from '@/components/ui/button';
 
 const STATUS_LABEL: Record<BookingStatus, string> = {
   confirmed: "Confirmed",
@@ -90,7 +91,7 @@ export default function BookingsPanel({
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex rounded-md border border-stone p-0.5">
             {(["list", "calendar"] as const).map((v) => (
-              <button
+              <Button
                 key={v}
                 onClick={() => setView(v)}
                 className={`rounded px-3 py-1.5 text-[12px] font-medium capitalize ${
@@ -98,16 +99,16 @@ export default function BookingsPanel({
                 }`}
               >
                 {v}
-              </button>
+              </Button>
             ))}
           </div>
           {canCreateBookings && (
-          <button
+          <Button
             onClick={() => setShowNewBooking(true)}
             className="rounded-md bg-moss px-3.5 py-2 text-[13px] font-semibold text-white hover:bg-moss-dark"
           >
             + New booking
-          </button>
+          </Button>
           )}
         </div>
       </div>
@@ -170,27 +171,27 @@ export default function BookingsPanel({
                 <div className="flex justify-end gap-2">
                   {b.status === "confirmed" && (
                     <>
-                      <button
+                      <Button
                         disabled={updatingId === b.id}
                         onClick={() => updateStatus(b.id, "attended")}
                         className="text-[11px] font-medium text-moss hover:underline disabled:opacity-50"
                       >
                         Attended
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         disabled={updatingId === b.id}
                         onClick={() => updateStatus(b.id, "no_show")}
                         className="text-[11px] font-medium text-ink-soft hover:underline disabled:opacity-50"
                       >
                         No-show
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         disabled={updatingId === b.id}
                         onClick={() => updateStatus(b.id, "cancelled")}
                         className="text-[11px] font-medium text-rust hover:underline disabled:opacity-50"
                       >
                         Cancel
-                      </button>
+                      </Button>
                     </>
                   )}
                 </div>
@@ -227,27 +228,27 @@ export default function BookingsPanel({
                 </div>
                 {b.status === "confirmed" && (
                   <div className="mt-3 flex gap-4 border-t border-stone-soft pt-3">
-                    <button
+                    <Button
                       disabled={updatingId === b.id}
                       onClick={() => updateStatus(b.id, "attended")}
                       className="text-[12px] font-medium text-moss disabled:opacity-50"
                     >
                       Attended
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       disabled={updatingId === b.id}
                       onClick={() => updateStatus(b.id, "no_show")}
                       className="text-[12px] font-medium text-ink-soft disabled:opacity-50"
                     >
                       No-show
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       disabled={updatingId === b.id}
                       onClick={() => updateStatus(b.id, "cancelled")}
                       className="text-[12px] font-medium text-rust disabled:opacity-50"
                     >
                       Cancel
-                    </button>
+                    </Button>
                   </div>
                 )}
               </div>
@@ -260,20 +261,20 @@ export default function BookingsPanel({
                 Page {safePage} of {totalPages}
               </p>
               <div className="flex gap-2">
-                <button
+                <Button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={safePage === 1}
                   className="rounded-md border border-stone px-3 py-1.5 text-[12px] font-medium text-ink hover:bg-stone-soft disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Previous
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                   disabled={safePage === totalPages}
                   className="rounded-md border border-stone px-3 py-1.5 text-[12px] font-medium text-ink hover:bg-stone-soft disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Next
-                </button>
+                </Button>
               </div>
             </div>
           )}

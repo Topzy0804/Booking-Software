@@ -103,12 +103,12 @@ export default function Services({ initialServices }: { initialServices: Service
               </p>
             </div>
             {!showForm && (
-              <button
+              <Button
                 onClick={() => setShowForm(true)}
                 className="rounded-md border border-stone px-3.5 py-2 text-xs font-medium text-ink hover:bg-stone-soft"
               >
                 + Add service
-              </button>
+              </Button>
             )}
           </div>
     

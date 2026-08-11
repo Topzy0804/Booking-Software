@@ -8,13 +8,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 
 const WEEKDAYS = [
-  { value: 1, label: "Mon" },
-  { value: 2, label: "Tue" },
-  { value: 3, label: "Wed" },
-  { value: 4, label: "Thu" },
-  { value: 5, label: "Fri" },
-  { value: 6, label: "Sat" },
-  { value: 0, label: "Sun" },
+  { value: 1, label: "Monday" },
+  { value: 2, label: "Tuesday" },
+  { value: 3, label: "Wednesday" },
+  { value: 4, label: "Thursday" },
+  { value: 5, label: "Friday" },
+  { value: 6, label: "Saturday" },
+  { value: 0, label: "Sunday" },
 ];
 
 const DEFAULT_DAYS = [1, 2, 3, 4, 5];
@@ -168,12 +168,12 @@ export default function StaffPanel({
              </p>
            </div>
            {!showForm && (
-             <button
+             <Button
                onClick={openAddForm}
                className="rounded-md border border-stone px-3.5 py-2 text-[13px] font-medium text-ink hover:bg-stone-soft"
              >
                + Add staff
-             </button>
+             </Button>
            )}
          </div>
    
@@ -218,7 +218,7 @@ export default function StaffPanel({
                  <span className="text-[12px] font-semibold text-ink">Can perform</span>
                  <div className="mt-1.5 flex flex-wrap gap-2">
                    {services.map((s) => (
-                     <button
+                     <Button
                        type="button"
                        key={s.id}
                        onClick={() => toggleService(s.id)}
@@ -229,7 +229,7 @@ export default function StaffPanel({
                        }`}
                      >
                        {s.name}
-                     </button>
+                     </Button>
                    ))}
                  </div>
                </div>
@@ -244,7 +244,7 @@ export default function StaffPanel({
                <span className="text-[12px] font-semibold text-ink">Working days</span>
                <div className="mt-1.5 flex flex-wrap gap-2">
                  {WEEKDAYS.map((d) => (
-                   <button
+                   <Button
                      type="button"
                      key={d.value}
                      onClick={() => toggleDay(d.value)}
@@ -255,7 +255,7 @@ export default function StaffPanel({
                      }`}
                    >
                      {d.label}
-                   </button>
+                   </Button>
                  ))}
                </div>
              </div>
