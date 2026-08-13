@@ -1,22 +1,33 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import {
+  CalendarDays,
+  Home,
+  MoreHorizontal,
+  Scissors,
+  Settings,
+  UserRound,
+  Users,
+  X,
+} from "lucide-react";
 
 const OWNER_NAV = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/dashboard/book", label: "Bookings" },
-  { href: "/dashboard/service", label: "Services" },
-  { href: "/dashboard/staff", label: "Staff" },
-  { href: "/dashboard/client", label: "Clients" },
-  { href: "/dashboard/settings", label: "Settings" },
+  { href: "/dashboard", label: "Dashboard", icon: Home },
+  { href: "/dashboard/book", label: "Bookings", icon: CalendarDays },
+  { href: "/dashboard/service", label: "Services", icon: Scissors },
+  { href: "/dashboard/staff", label: "Staff", icon: Users },
+  { href: "/dashboard/client", label: "Clients", icon: UserRound },
+  { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
 const STAFF_NAV = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/dashboard/book", label: "Bookings" },
-  { href: "/dashboard/profile", label: "My Profile" },
+  { href: "/dashboard", label: "Dashboard", icon: Home },
+  { href: "/dashboard/book", label: "Bookings", icon: CalendarDays },
+  { href: "/dashboard/profile", label: "My Profile", icon: UserRound },
 ];
 
 export default function Sidebar({
@@ -29,7 +40,22 @@ export default function Sidebar({
   role: 'owner' | 'staff';
 }) {
   const pathname = usePathname();
+  const [openMore, setOpenMore] = useState(false);
   const navItems = role === 'owner' ? OWNER_NAV : STAFF_NAV;
+
+  const mobilePrimary =
+    role === 'owner'
+      ? navItems.filter((item) => ['/dashboard', '/dashboard/book', '/dashboard/client'].includes(item.href)) : navItems;
+
+      const moreItems = 
+        role === 'owner'
+          ? navItems.filter((item) => ['/dashboard/service', '/dashboard/staff', '/dashboard/settings'].includes(item.href)) : [];
+
+      function isActive(href: string) {
+        return href === '/dashboard' 
+          ? pathname === '/dashboard' 
+          : pathname.startsWith(href);
+      }
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -49,10 +75,8 @@ export default function Sidebar({
 
         <div className="flex flex-1 flex-col">
           {navItems.map((item) => {
-            const active =
-              item.href === "/dashboard"
-                ? pathname === "/dashboard"
-                : pathname.startsWith(item.href);
+            const active = isActive(item.href);
+
             return (
               <Link
                 key={item.href}
@@ -79,30 +103,130 @@ export default function Sidebar({
         </div>
       </div>
 
-      {/* Mobile bottom bar -- front-desk-on-a-phone use case */}
-      <div className="fixed bottom-0 left-0 right-0 z-10 flex border-t border-stone bg-paper-raised md:hidden">
-        {navItems.map((item) => {
-          const active =
-            item.href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex-1 py-3 text-center text-xs font-medium ${
-                active ? "text-moss" : "text-ink-soft"
-              }`}
-            >
-              {item.label}
-            </Link>
-          );
-        })}
-        <Button
-          onClick={handleLogout}
-          className="flex-1 py-3 text-center text-xs font-medium text-ink-soft"
-        >
-          Log out
-        </Button>
-      </div>
+      {/* Mobile bottom navigation */}
+      <nav
+        aria-label="Mobile navigation"
+        className="fixed bottom-0 left-0 right-0 z-40 border-t border-stone bg-paper-raised/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_18px_rgba(34,38,31,0.06)] backdrop-blur md:hidden"
+      >
+        <div className="mx-auto flex h-16 max-w-md items-center justify-center">
+          {mobilePrimary.map((item) => {
+            const active = isActive(item.href);
+            const Icon = item.icon;
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex flex-1 flex-col items-center justify-center gap-1 text-xs font-medium transition ${
+                  active ? "text-moss" : "text-ink-soft"
+                }`}
+              >
+                <Icon
+                  size={19}
+                  strokeWidth={active ? 2.2 : 1.8}
+                  aria-hidden="true"
+                />
+                <span>{item.label === "Dashboard" ? "Home" : item.label}</span>
+              </Link>
+            );
+          })}
+
+          <Button
+            type="button"
+            onClick={() => setOpenMore(true)}
+            className={`flex flex-1 flex-col items-center justify-center gap-1 text-xs font-medium transition ${
+              openMore ? "text-moss" : "text-ink-soft"
+            }`}
+          >
+            <MoreHorizontal
+              size={19}
+              strokeWidth={openMore ? 2.2 : 1.8}
+              aria-hidden="true"
+            />
+            <span>More</span>
+          </Button>
+        </div>
+      </nav>
+
+
+      {/* Mobile More Options  */}
+      {openMore && (
+        <div
+          className="fixed inset-0 z-50 md:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-label="More navigation">
+            <Button
+              onClick={() => setOpenMore(false)}
+              aria-label="close more menu"
+              className="absolute inset-0 bg-ink/25"
+            />
+
+            <div className="absolute bottom-0 left-0 right-0 rounded-t-2xl border-t border-stone bg-paper-raised px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-3 shadow-[0_-10px_30px_rgba(34,38,31,0.12)]">
+            <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-stone" />
+
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="font-display text-base font-semibold text-ink">
+                More
+              </h2>
+              <Button
+                type="button"
+                onClick={() => setOpenMore(false)}
+                aria-label="Close"
+                className="rounded-full p-2 text-ink-soft hover:bg-stone-soft hover:text-ink"
+              >
+                <X size={18} />
+              </Button>
+          </div>
+
+          <div className="space-y-1">
+              {moreItems.map((item) => {
+                const active = isActive(item.href);
+                const Icon = item.icon;
+
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setOpenMore(false)}
+                    className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition ${
+                      active
+                        ? "bg-stone-soft text-moss"
+                        : "text-ink hover:bg-stone-soft/60"
+                    }`}
+                  >
+                    <Icon size={19} strokeWidth={1.9} />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+
+              {role === "staff" && (
+                <Link
+                  href="/dashboard/profile"
+                  onClick={() => setOpenMore(false)}
+                  className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-ink hover:bg-stone-soft/60"
+                >
+                  <UserRound size={19} strokeWidth={1.9} />
+                  <span>My Profile</span>
+                </Link>
+              )}
+
+              <div className="my-2 border-t border-stone-soft" />
+
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm font-medium text-ink-soft transition hover:bg-stone-soft/60 hover:text-rust"
+              >
+                <span aria-hidden="true">↪</span>
+                <span>Log out</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
+

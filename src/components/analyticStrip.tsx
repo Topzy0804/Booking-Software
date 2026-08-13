@@ -8,7 +8,7 @@ export default function AnalysticsStrip({ bookings }: { bookings: Booking[] }) {
   const stats = useMemo(() => computeStats(bookings), [bookings]);
 
   return (
-    <div className="mb-6 grid grid-cols-3 bg-paper-raised overflow-hidden">
+    <div className="mb-6 grid grid-cols-1 md:grid-cols-3 sm:grid-cols-2 bg-paper-raised overflow-hidden">
       <Stat number={stats.upcoming} label="Upcoming bookings" />
       <Stat number={stats.thisWeek} label="This week" />
       <Stat number={stats.noShows} label="No-shows" />

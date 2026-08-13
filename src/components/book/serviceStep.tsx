@@ -19,7 +19,7 @@ export function ServiceStep({
         <Button
           key={s.id}
           onClick={() => onSelect(s)}
-          className={`mb-2.5 flex w-full items-center justify-between rounded-lg border bg-paper-raised px-4 py-3.5 text-left ${
+          className={`mb-2.5 flex w-full items-center justify-between rounded-lg border bg-paper-raised px-4 py-10 text-left ${
             selected.id === s.id ? "border-moss shadow-[0_0_0_2px_rgba(62,92,70,0.14)]" : "border-stone"
           }`}
         >
