@@ -17,13 +17,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 
 const WEEKDAYS = [
-  { value: 1, label: "Monday" },
-  { value: 2, label: "Tuesday" },
-  { value: 3, label: "Wednesday" },
-  { value: 4, label: "Thursday" },
-  { value: 5, label: "Friday" },
-  { value: 6, label: "Saturday" },
-  { value: 0, label: "Sunday" },
+  { value: 1, label: "Mond" },
+  { value: 2, label: "Tues" },
+  { value: 3, label: "Wed" },
+  { value: 4, label: "Thurs" },
+  { value: 5, label: "Fri" },
+  { value: 6, label: "Sat" },
+  { value: 0, label: "Sun" },
 ];
 
 const DEFAULT_DAYS = [1, 2, 3, 4, 5];
