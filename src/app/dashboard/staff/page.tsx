@@ -29,6 +29,7 @@ export default async function StaffPage() {
 
         return {
           ...resource,
+          email: resource.email || undefined,
           workingHours: hours.map((hour) => ({
             dayOfWeek: hour.dayOfWeek,
             startTime: hour.startTime,

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db/client";
 import { resources, workingHours, serviceResources } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { requireTenantSession } from "@/lib/requireAuth";
 import { getCurrentTenants } from "@/lib/tenant";
 import { z } from "zod";

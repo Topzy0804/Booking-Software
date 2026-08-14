@@ -412,7 +412,7 @@ export default function StaffPanel({
                              {serviceNames.length ? <div className="flex flex-wrap gap-1.5">{serviceNames.map((serviceName) => <span key={serviceName} className="rounded-full border border-stone px-2.5 py-1 text-[10px] text-ink-soft">{serviceName}</span>)}</div> : <p className="text-[11px] text-ink-soft">No services assigned</p>}
                            </div>
                            <div className="border-t border-stone-soft pt-3">
-                             <div className="flex items-center justify-between gap-3"><span className="text-[10px] text-ink-soft">Booking access</span><span className="text-[10px] font-medium text-ink">{r.canViewAllBookings ? "All bookings" : "Own bookings"}</span></div>
+                             <div className="flex items-center justify-between gap-3"><span className="text-[10px] text-ink-soft">Booking access</span><span className="text-[10px] font-medium text-ink">{r.CanViewAllBookings ? "All bookings" : "Own bookings"}</span></div>
                            </div>
                          </CardContent>
                        </Card>
