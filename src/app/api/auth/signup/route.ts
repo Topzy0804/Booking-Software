@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db/client';
-import { tenants, users, memberships } from '@/db/schema';
+import { tenants, users, memberships, resources, workingHours  } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { hashPassword, setSessionCookie } from '@/lib/auth';
 import { z } from 'zod';
@@ -12,6 +12,7 @@ const schema = z.object({
     .min(2)
     .regex(/^[a-z0-9-]+$/, 'Lowercase letters, numbers, and hyphens only'),
   ownerName: z.string().min(2),
+  teamMode: z.enum(["solo", "team"]).default("solo"),
   email: z.string().email(),
   password: z.string().min(8),
 });
@@ -34,9 +35,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'An account with that email already exists' }, { status: 409 });
   }
 
-  const passwordHash =await hashPassword(password);
+  const passwordHash = await hashPassword(password);
 
-  const [tenant] = await db.insert(tenants).values({ name: businessName, subdomain }).returning();
+  const [tenant] = await db.insert(tenants).values({ name: businessName, subdomain, teamMode: parsed.data.teamMode }).returning();
   const [user] = await db
     .insert(users)
     .values({ email, passwordHash, fullName: ownerName })
@@ -44,6 +45,22 @@ export async function POST(req: NextRequest) {
   await db.insert(memberships).values({ tenantId: tenant.id, userId: user.id, role: 'owner' });
 
   await setSessionCookie({ userId: user.id, tenantId: tenant.id, role: 'owner' });
+
+  if (parsed.data.teamMode === "solo") {
+    const [ownerResource] = await db
+      .insert(resources)
+      .values({ tenantId: tenant.id, linkedUserId: user.id, name: ownerName, email })
+      .returning();
+
+      await db.insert(workingHours).values(
+        [1, 2, 3, 4, 5].map((day) => ({
+          resourceId: ownerResource.id,
+          dayOfWeek: day,
+          startTime: '09:00',
+          endTime: '17:00',
+        }))
+      );
+  }
 
   return NextResponse.json({ tenant, redirectSubdomain: subdomain  });
 }

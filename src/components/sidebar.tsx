@@ -19,7 +19,7 @@ const OWNER_NAV = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
   { href: "/dashboard/book", label: "Bookings", icon: CalendarDays },
   { href: "/dashboard/service", label: "Services", icon: Scissors },
-  { href: "/dashboard/staff", label: "Staff", icon: Users },
+  { href: "/dashboard/staff", label: "Team", icon: Users },
   { href: "/dashboard/client", label: "Clients", icon: UserRound },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];

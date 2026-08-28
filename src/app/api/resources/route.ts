@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db/client";
-import { resources, workingHours, serviceResources } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { resources, workingHours, serviceResources, users, memberships } from "@/db/schema";
+import { eq, and } from "drizzle-orm";
 import { requireTenantSession } from "@/lib/requireAuth";
 import { getCurrentTenants } from "@/lib/tenant";
 import { z } from "zod";
@@ -62,9 +62,30 @@ export async function POST(req: NextRequest) {
   }
   const { name, email, serviceIds, workingHours: hours } = parsed.data;
 
+  const [existingUser] = await db.select().from(users).where(eq(users.email, email));
+  let skipInvite = false;
+  let linkedUserId: string | undefined;
+
+  if (existingUser) {
+    const [existingMembership] = await db
+      .select()
+      .from(memberships)
+      .where(and(eq(memberships.userId, existingUser.id), eq(memberships.tenantId, auth.tenant.id)));
+
+      if (existingMembership) {
+        skipInvite = true;
+        linkedUserId = existingUser.id;
+      }
+  }
+
   const [resource] = await db
     .insert(resources)
-    .values({ tenantId: auth.tenant.id, name, email })
+    .values({ 
+      tenantId: auth.tenant.id, 
+      name, 
+      email, 
+      linkedUserId, 
+    })
     .returning();
 
   if (hours.days.length > 0) {
@@ -84,6 +105,16 @@ export async function POST(req: NextRequest) {
       .values(serviceIds.map((serviceId) => ({ serviceId, resourceId: resource.id })));
   }
 
+  if (!skipInvite) {
+    const inviteUrl = buildStaffInviteUrl(auth.tenant.subdomain, createStaffInviteToken(resource.id));
+    await sendStaffInviteEmail({
+      to: email,
+      staffName: name,
+      tenantName: auth.tenant.name,
+      inviteUrl,
+    });
+  }
+
   const createdHours = await db
     .select()
     .from(workingHours)
@@ -93,13 +124,13 @@ export async function POST(req: NextRequest) {
     .from(serviceResources)
     .where(eq(serviceResources.resourceId, resource.id));
 
-    const inviteUrl = buildStaffInviteUrl(auth.tenant.subdomain, createStaffInviteToken(resource.id));
-await sendStaffInviteEmail({
-  to: email,
-  staffName: name,
-  tenantName: auth.tenant.name,
-  inviteUrl,
-});
+//     const inviteUrl = buildStaffInviteUrl(auth.tenant.subdomain, createStaffInviteToken(resource.id));
+// await sendStaffInviteEmail({
+//   to: email,
+//   staffName: name,
+//   tenantName: auth.tenant.name,
+//   inviteUrl,
+// });
 
   return NextResponse.json({
     resource: {

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { toast } from 'sonner';
 import PasswordInput from '@/components/passwordInput';
 import { Button } from '@/components/ui/button';
@@ -77,6 +78,9 @@ export default function LoginForm() {
         (whatever port your terminal shows).
       </p>
       <p className='text-xs text-moss'>Don&apos;t have an account? <a href="/signup" className="text-moss text-xs hover:underline">Sign up</a></p>
+      <Link href="/forgotPassword" className="text-xs text-ink-soft hover:text-ink">
+  Forgot your password?
+</Link>
     </form>
   );
 }

@@ -27,6 +27,7 @@ export const tenants = pgTable(
     id: id(),
     name: text("name").notNull(),
     subdomain: text("subdomain").notNull(),
+    teamMode: text("team_mode", { enum: ["solo", "team"] }).notNull().default("solo"),
     timezone: text("timezone").notNull().default("UTC"),
     ...timestamps,
   },

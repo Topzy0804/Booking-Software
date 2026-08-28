@@ -5,14 +5,26 @@ import { toast } from "sonner";
 import PasswordInput from "@/components/passwordInput";
 import { Button } from '@/components/ui/button';
 
+type TeamMode = "solo" | "team";
+
 export default function SignupPage() {
-  const [form, setForm] = useState({
+
+  const [form, setForm] = useState<{
+    businessName: string,
+    subdomain: string,
+    ownerName: string,
+    email: string,
+    password: string,
+    teamMode: TeamMode,
+  }>({
     businessName: "",
     subdomain: "",
     ownerName: "",
     email: "",
     password: "",
+    teamMode: "solo",
   });
+
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -76,6 +88,31 @@ export default function SignupPage() {
               value={form.businessName}
               onChange={(e) => setForm({ ...form, businessName: e.target.value })}
             />
+          </Field>
+
+          <Field label="Team mode">
+            <div className="flex space-x-4">
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="teamMode"
+                  value="solo"
+                  checked={form.teamMode === "solo"}
+                  onChange={(e) => setForm({ ...form, teamMode: e.target.value as TeamMode })}
+                />
+                <span className="ml-2">Solo</span>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="radio"
+                  name="teamMode"
+                  value="team"
+                  checked={form.teamMode === "team"}
+                  onChange={(e) => setForm({ ...form, teamMode: e.target.value as TeamMode })}
+                />
+                <span className="ml-2">Team</span>
+              </label>
+            </div>
           </Field>
 
           <Field label="Booking page address" hint="letters, numbers, hyphens only">
