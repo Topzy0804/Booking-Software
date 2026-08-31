@@ -7,9 +7,22 @@ import { z } from "zod";
 import { memberships } from "@/db/schema";
 
 
+async function getCanViewAllBookings(
+  linkedUserId: string | null,
+  tenantId: string
+): Promise<boolean> {
+  if (!linkedUserId) return false;
+  const [membership] = await db
+    .select({ canViewAllBookings: memberships.canViewAllBookings })
+    .from(memberships)
+    .where(and(eq(memberships.userId, linkedUserId), eq(memberships.tenantId, tenantId)));
+  return membership?.canViewAllBookings ?? false;
+}
+
 function buildResourceDetails(
   resource: typeof resources.$inferSelect,
   hours: Array<typeof workingHours.$inferSelect>,
+  canViewAllBookings: boolean,
   links: Array<{ serviceId: string }>
 ) {
   return {
@@ -20,6 +33,7 @@ function buildResourceDetails(
       endTime: h.endTime,
     })),
     serviceIds: links.map((l) => l.serviceId),
+    canViewAllBookings,
   };
 }
 
@@ -102,17 +116,21 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
 
   const [updated] = await db.select().from(resources).where(eq(resources.id, id));
+
   const updatedHours = await db
     .select()
     .from(workingHours)
     .where(eq(workingHours.resourceId, id));
+
   const updatedLinks = await db
     .select({ serviceId: serviceResources.serviceId })
     .from(serviceResources)
     .where(eq(serviceResources.resourceId, id));
 
+  const canViewAll = await getCanViewAllBookings(updated.linkedUserId, auth.tenant.id);
+
   return NextResponse.json({
-    resource: buildResourceDetails(updated, updatedHours, updatedLinks),
+    resource: buildResourceDetails(updated, updatedHours, canViewAll, updatedLinks),
   });
 }
 
@@ -134,12 +152,15 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     .select()
     .from(workingHours)
     .where(eq(workingHours.resourceId, id));
+
   const links = await db
     .select({ serviceId: serviceResources.serviceId })
     .from(serviceResources)
     .where(eq(serviceResources.resourceId, id));
 
+  const canViewAll = await getCanViewAllBookings(resource.linkedUserId, auth.tenant.id);
+
   return NextResponse.json({
-    resource: buildResourceDetails(resource, hours, links),
+    resource: buildResourceDetails(resource, hours, canViewAll, links),
   });
 }

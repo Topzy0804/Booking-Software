@@ -134,7 +134,7 @@ export default function BookingsPanel({
         <>
           {/* Desktop / tablet: table */}
           <div className="hidden overflow-x-auto rounded-lg border border-stone bg-paper-raised md:block">
-            <div className="grid min-w-[720px] grid-cols-[110px_1.4fr_1fr_1fr_120px_1fr] gap-3 bg-stone-soft px-4 py-2.5 font-mono text-[10px] uppercase tracking-wide text-ink-soft">
+            <div className="grid min-w-180 grid-cols-[110px_1.4fr_1fr_1fr_120px_1fr] gap-3 bg-stone-soft px-4 py-2.5 font-mono text-[10px] uppercase tracking-wide text-ink-soft">
               <div>Time</div>
               <div>Client</div>
               <div>Service</div>
@@ -145,7 +145,7 @@ export default function BookingsPanel({
             {paginated.map((b) => (
               <div
                 key={b.id}
-                className="grid min-w-[720px] grid-cols-[110px_1.4fr_1fr_1fr_120px_1fr] items-center gap-3 border-t border-stone-soft px-4 py-3 text-[13px]"
+                className="grid min-w-180 grid-cols-[110px_1.4fr_1fr_1fr_120px_1fr] items-center gap-3 border-t border-stone-soft px-4 py-3 text-[13px]"
               >
                 <div className="font-mono text-ink">
                   {new Date(b.startsAt).toLocaleString(undefined, {
