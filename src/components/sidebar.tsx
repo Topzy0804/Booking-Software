@@ -70,7 +70,7 @@ export default function Sidebar({
       <div className="hidden w-[220px] shrink-0 flex-col border-r border-stone bg-paper-raised py-6 md:flex">
         <div className="mb-3.5 border-b border-stone-soft px-5 pb-5">
           <div className="font-display text-base font-semibold text-ink">{tenantName}</div>
-          <div className="mt-0.5 font-mono text-[11px] text-ink-soft">{subdomain}.app.com</div>
+          <div className="mt-0.5 font-mono text-[11px] text-ink-soft">{subdomain}.modabyz.me</div>
         </div>
 
         <div className="flex flex-1 flex-col">
