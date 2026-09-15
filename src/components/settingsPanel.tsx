@@ -13,8 +13,11 @@ import {
   MonitorCog,
   ShieldAlert,
   UserRound,
+  ShieldCheck,
+  MonitorSmartphone
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import ChangePasswordForm from '@/components/confirmPassword';
 
 type SectionId =
   | 'business'
@@ -566,68 +569,160 @@ export default function SettingsPanel({
           
                 case 'account':
                   return (
-                    <div>
-                      <SectionHeader
-                        title="Account & security"
-                        description="Owner-only account controls. Staff members do not have access to this area."
-                      />
-          
-                      <div className="space-y-4">
-                        <div className="rounded-lg border border-stone-soft p-4">
-                          <div className="flex items-center gap-3">
-                            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-stone-soft">
-                              <UserRound size={17} className="text-moss" />
-                            </div>
-                            <div>
-                              <div className="text-xs font-semibold text-ink">Business owner</div>
-                              <div className="text-[11px] text-ink-soft">
-                                Owner account controls
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-          
-                        <SettingRow
-                          title="Change password"
-                          description="Update the password used to access the owner account."
-                          comingSoon
-                        >
-                          <Button
-                            type="button"
-                            variant="outline"
-                            disabled
-                            className="h-9 cursor-not-allowed rounded-md px-3 text-xs opacity-60"
-                          >
-                            Change
-                          </Button>
-                        </SettingRow>
-          
-                        <SettingRow
-                          title="Two-factor authentication"
-                          description="Add an extra security layer to the owner account."
-                          comingSoon
-                        >
-                          <span className="rounded-full bg-stone-soft px-2.5 py-1 text-[10px] font-semibold text-ink-soft">
-                            Not configured
-                          </span>
-                        </SettingRow>
-          
-                        <SettingRow
-                          title="Active sessions"
-                          description="Review and sign out of devices currently using your account."
-                          comingSoon
-                        >
-                          <Button
-                            type="button"
-                            variant="outline"
-                            disabled
-                            className="h-9 cursor-not-allowed rounded-md px-3 text-xs opacity-60"
-                          >
-                            Manage
-                          </Button>
-                        </SettingRow>
-                      </div>
-                    </div>
+                   <div>
+  <SectionHeader
+    title="Account & security"
+    description="Manage your owner account, password, and security settings."
+  />
+
+  <div className="mt-6 overflow-hidden rounded-xl border border-stone bg-white">
+    {/* Account overview */}
+    <div className="border-b border-stone bg-stone-soft/30 px-5 py-5 sm:px-6">
+      <div className="flex items-start gap-4">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-moss/10">
+          <UserRound size={19} className="text-moss" />
+        </div>
+
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="text-sm font-semibold text-ink">
+              Business owner
+            </h3>
+
+            <span className="rounded-full bg-moss/10 px-2 py-0.5 text-[10px] font-semibold text-moss">
+              Owner
+            </span>
+          </div>
+
+          <p className="mt-1 text-xs leading-5 text-ink-soft">
+            Owner-only account controls. Staff members do not have access to
+            this area.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    {/* Security settings */}
+    <div className="divide-y divide-stone">
+      {/* Change password */}
+      <div className="px-5 py-5 sm:px-6">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="max-w-md">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-stone-soft">
+                <LockKeyhole size={16} className="text-ink-soft" />
+              </div>
+
+              <div>
+                <h3 className="text-sm font-semibold text-ink">
+                  Change password
+                </h3>
+
+                <span className="mt-0.5 block text-[11px] font-medium text-moss">
+                  Available
+                </span>
+              </div>
+            </div>
+
+            <p className="mt-3 pl-12 text-xs leading-5 text-ink-soft">
+              Update the password used to access your owner account.
+            </p>
+          </div>
+
+          <div className="w-full lg:max-w-sm">
+            <ChangePasswordForm />
+          </div>
+        </div>
+      </div>
+
+      {/* Two-factor authentication */}
+      <div className="px-5 py-5 sm:px-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-stone-soft">
+              <ShieldCheck size={16} className="text-ink-soft" />
+            </div>
+
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-sm font-semibold text-ink">
+                  Two-factor authentication
+                </h3>
+
+                <span className="rounded-full bg-stone-soft px-2 py-0.5 text-[10px] font-semibold text-ink-soft">
+                  Coming soon
+                </span>
+              </div>
+
+              <p className="mt-1 max-w-lg text-xs leading-5 text-ink-soft">
+                Add an extra layer of protection to your owner account.
+              </p>
+            </div>
+          </div>
+
+          <div className="shrink-0 sm:text-right">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-stone bg-stone-soft/50 px-2.5 py-1 text-[10px] font-semibold text-ink-soft">
+              <span className="h-1.5 w-1.5 rounded-full bg-ink-soft/50" />
+              Not configured
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Active sessions */}
+      <div className="px-5 py-5 sm:px-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-stone-soft">
+              <MonitorSmartphone size={16} className="text-ink-soft" />
+            </div>
+
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-sm font-semibold text-ink">
+                  Active sessions
+                </h3>
+
+                <span className="rounded-full bg-stone-soft px-2 py-0.5 text-[10px] font-semibold text-ink-soft">
+                  Coming soon
+                </span>
+              </div>
+
+              <p className="mt-1 max-w-lg text-xs leading-5 text-ink-soft">
+                Review devices currently signed in to your owner account and
+                sign out remotely.
+              </p>
+            </div>
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            disabled
+            className="h-9 shrink-0 rounded-md border-stone px-3 text-xs font-medium text-ink-soft opacity-60"
+          >
+            Manage sessions
+          </Button>
+        </div>
+      </div>
+    </div>
+
+    {/* Security note */}
+    <div className="border-t border-stone bg-stone-soft/20 px-5 py-4 sm:px-6">
+      <div className="flex items-start gap-2.5">
+        <ShieldCheck
+          size={15}
+          className="mt-0.5 shrink-0 text-moss"
+        />
+
+        <p className="text-[11px] leading-5 text-ink-soft">
+          Keep your account secure by using a strong, unique password. Never
+          share your owner credentials with staff members.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
                   );
           
                 case 'danger':

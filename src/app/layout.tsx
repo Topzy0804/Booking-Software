@@ -22,13 +22,13 @@ const plexMono = IBM_Plex_Mono({
 
 
 export const metadata: Metadata = {
-  title: "Booking MVP",
+  title: "Topzy Booking Software - Simple scheduling for service businesses",
   description: "Multi-tenant booking platform",
   other: { "color-scheme": "light" },
   icons: {
-    icon: "/booking-logo.png",
-    shortcut: "/booking-logo.png",
-    apple: "/booking-logo.png",
+    icon: "/whiteLogo.png",
+    shortcut: "/whiteLogo.png",
+    apple: "/whiteLogo.png",
   }
 };
 

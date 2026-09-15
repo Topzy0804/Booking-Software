@@ -1,75 +1,46 @@
 import Link from 'next/link';
-
-const productLinks = [
-  { href: '/clientPages/for-business', label: 'For businesses' },
-  { href: '/clientPages/for-client', label: 'For clients' },
-  { href: '/clientPages/pricing', label: 'Pricing' },
-];
-
-const accountLinks = [
-  { href: '/login', label: 'Sign in' },
-  { href: '/signup', label: 'Create your business' },
-];
+import Image from 'next/image';
 
 export default function Footer() {
-  const year = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-stone bg-paper">
-      <div className="mx-auto max-w-5xl px-6 py-14">
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-[1.3fr_1fr_1fr]">
-          <div className="text-left">
-            <div className="flex items-center gap-1.5 font-display text-lg font-semibold text-moss">
-              <span>◆</span>
-              <span>Topzy</span>
+    <footer className="border-t border-stone-soft bg-paper">
+          <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
+            <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <Link href="/" className="flex gap-2">
+                  <Image src="/logo.png" alt="Topzy logo" width={140} height={30} />
+                  
+                </Link>
+    
+                <p className="mt-2 max-w-xs text-[11px] leading-5 text-ink-soft sm:text-xs">
+                  Simple booking software for service businesses.
+                </p>
+              </div>
+    
+              <div className="flex items-center gap-5 sm:gap-6">
+                <Link
+                  href="/login"
+                  className="text-xs font-medium text-ink-soft transition hover:text-ink"
+                >
+                  Sign in
+                </Link>
+    
+                <Link
+                  href="/signup"
+                  className="text-xs font-medium text-moss transition hover:text-moss-dark"
+                >
+                  Get started
+                </Link>
+              </div>
             </div>
-            <p className="mt-3 max-w-[26ch] text-sm leading-relaxed text-ink-soft">
-              Booking, staff &amp; clients — one ledger every business can
-              trust.
-            </p>
+    
+            <div className="mt-7 border-t border-stone-soft pt-5 sm:mt-8 sm:pt-6">
+              <p className="text-[9px] text-ink-soft sm:text-[10px]">
+                © {new Date().getFullYear()} Topzy booking software. All rights reserved.
+              </p>
+            </div>
           </div>
-
-          <FooterColumn heading="Product" links={productLinks} />
-          <FooterColumn heading="Account" links={accountLinks} />
-        </div>
-
-        <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-stone-soft pt-6 sm:flex-row">
-          <p className="font-mono text-xs text-ink-soft">
-            © {year} Topzy. All rights reserved.
-          </p>
-          <p className="font-mono text-xs text-ink-soft">
-            Built for businesses who don&apos;t double-book.
-          </p>
-        </div>
-      </div>
-    </footer>
-  );
-}
-
-function FooterColumn({
-  heading,
-  links,
-}: {
-  heading: string;
-  links: { href: string; label: string }[];
-}) {
-  return (
-    <div className="text-left">
-      <p className="font-mono text-[11px] font-semibold uppercase tracking-wide text-ink">
-        {heading}
-      </p>
-      <ul className="mt-4 flex flex-col gap-2.5">
-        {links.map((link) => (
-          <li key={link.href}>
-            <Link
-              href={link.href}
-              className="text-sm text-ink-soft transition-colors hover:text-moss"
-            >
-              {link.label}
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </div>
+        </footer>
   );
 }

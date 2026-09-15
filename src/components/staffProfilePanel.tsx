@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import ChangePasswordForm from './confirmPassword';
 
 type Service = {
   id: string;
@@ -309,6 +310,9 @@ export default function StaffProfilePanel({
           </div>
         </div>
       )}
+        <div>
+          <ChangePasswordForm />
+         </div>
     </div>
   )
 }
