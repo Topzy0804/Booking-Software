@@ -18,10 +18,12 @@ export default function OverviewPanel({
   tenantName,
   bookings,
   clients,
+  subdomain,
 }: {
   tenantName: string;
   bookings: Booking[];
   clients: Client[];
+  subdomain: string;
 }) {
   const chartData = useMemo(() => buildDailyVolume(bookings, 14), [bookings]);
 
@@ -41,6 +43,7 @@ export default function OverviewPanel({
             <h2 className="font-display text-2xl font-semibold text-ink">
               Welcome back, {tenantName}
             </h2>
+            <p className="font-mono text-[11px] text-ink-soft lg:hidden">{subdomain}.modabyz.me</p>
             <p className="mt-1 text-[13px] text-ink-soft">Here&rsquo;s how things are looking.</p>
           </div>
     

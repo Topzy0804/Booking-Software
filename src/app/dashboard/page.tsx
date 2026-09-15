@@ -18,7 +18,12 @@ export default async function DashboardIndexPage() {
   );
 
   if (!canViewAll && !myResourceId) {
-    return <OverviewPanel tenantName={auth.tenant.name} bookings={[]} clients={[]} />;
+    return <OverviewPanel 
+    tenantName={auth.tenant.name} 
+    subdomain={auth.tenant.subdomain}
+    bookings={[]} 
+    clients={[]} 
+    />;
   }
 
   const bookingsWhere = canViewAll
@@ -87,6 +92,7 @@ export default async function DashboardIndexPage() {
         tenantName={auth.tenant.name}
         bookings={bookingRows}
         clients={normalizedClients}
+        subdomain={auth.tenant.subdomain}
       />
     );
 }
